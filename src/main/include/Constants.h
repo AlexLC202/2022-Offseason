@@ -78,9 +78,9 @@ namespace SwerveConstants
     const double BL_CANCODER_OFFSET = 7.91;*/
 
     const double TR_CANCODER_OFFSET = 19.77;
-    const double TL_CANCODER_OFFSET = -70.048;
-    const double BR_CANCODER_OFFSET = 17.5;
-    const double BL_CANCODER_OFFSET = 176.39;
+    const double TL_CANCODER_OFFSET = -70.048 + 180;
+    const double BR_CANCODER_OFFSET = 17.5 + 180;
+    const double BL_CANCODER_OFFSET = 176.39 + 180;
 
 }
 

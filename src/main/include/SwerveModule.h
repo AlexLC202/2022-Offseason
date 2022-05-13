@@ -42,9 +42,9 @@ class SwerveModule
 
         double aPrevError_, aIntegralError_, dPrevError_, dIntegralError_;
 
-        double akP_ = 0.1; //TODO tune values
+        double akP_ = 0.08; //TODO tune values
         double akI_ = 0.0;
-        double akD_ = 0.003;
+        double akD_ = 0.001;
 
         double dkP_ = 0.0; //TODO tune values
         double dkI_ = 0.0;

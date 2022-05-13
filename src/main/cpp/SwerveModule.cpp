@@ -96,7 +96,7 @@ double SwerveModule::calcDrivePID(double driveSpeed)
 double SwerveModule::findError(double setAngle)
 {
     double rawError = setAngle - getAngle();
-    if(abs(rawError) > 180)
+    if(abs(rawError) > 90)
     {
         direction_ = -1;
     }

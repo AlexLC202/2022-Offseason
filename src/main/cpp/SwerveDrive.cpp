@@ -42,11 +42,16 @@ void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
 void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 {
     //pain.set(PainLevel::ExtremelyHigh);
+    //frc::SmartDashboard::PutNumber("Yaw", yaw_);
+    double angle = yaw_ * M_PI / 180;
 
-    double A = xSpeed - (turn * SwerveConstants::LENGTH/2); //TODO test without dimensions
-    double B = xSpeed + (turn * SwerveConstants::LENGTH/2);
-    double C = ySpeed - (turn * SwerveConstants::WIDTH/2);
-    double D = ySpeed + (turn * SwerveConstants::WIDTH/2);
+    double newX = xSpeed * cos(angle) + ySpeed * sin(angle);
+    double newY = ySpeed * cos(angle) + xSpeed * -sin(angle);
+
+    double A = newX - (turn); //TODO test without dimensions LLWW/2
+    double B = newX + (turn);
+    double C = newY - (turn);
+    double D = newY + (turn);
 
     trSpeed_ = sqrt(B*B + C*C);
     tlSpeed_ = sqrt(B*B + D*D);
@@ -55,10 +60,10 @@ void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 
     if(xSpeed != 0 || ySpeed != 0 || turn != 0)
     {
-        trAngle_ = yaw_ - atan2(B, C) * 180 / M_PI;
-        tlAngle_ = yaw_ - atan2(B, D) * 180 / M_PI;
-        brAngle_ = yaw_ - atan2(A, C) * 180 / M_PI;
-        blAngle_ = yaw_ - atan2(A, D) * 180 / M_PI;
+        trAngle_ = -atan2(B, C) * 180 / M_PI;
+        tlAngle_ = -atan2(B, D) * 180 / M_PI;
+        brAngle_ = -atan2(A, C) * 180 / M_PI;
+        blAngle_ = -atan2(A, D) * 180 / M_PI;
     }
 
     if(trSpeed_ > 1 || tlSpeed_ > 1 || brSpeed_ > 1 || brSpeed_ > 1)
