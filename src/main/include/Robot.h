@@ -37,7 +37,7 @@ private:
     const std::string kAutoNameCustom = "My Auto";
     std::string m_autoSelected;
 
-    AHRS *navx;
+    AHRS *navx_;
 
     Controls *controls_ = new Controls();
     SwerveDrive swerveDrive_;

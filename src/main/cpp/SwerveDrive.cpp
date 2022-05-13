@@ -55,10 +55,10 @@ void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 
     if(xSpeed != 0 || ySpeed != 0 || turn != 0)
     {
-        trAngle_ = -atan2(B, C) * 180 / M_PI;
-        tlAngle_ = -atan2(B, D) * 180 / M_PI;
-        brAngle_ = -atan2(A, C) * 180 / M_PI;
-        blAngle_ = -atan2(A, D) * 180 / M_PI;
+        trAngle_ = yaw_ - atan2(B, C) * 180 / M_PI;
+        tlAngle_ = yaw_ - atan2(B, D) * 180 / M_PI;
+        brAngle_ = yaw_ - atan2(A, C) * 180 / M_PI;
+        blAngle_ = yaw_ - atan2(A, D) * 180 / M_PI;
     }
 
     if(trSpeed_ > 1 || tlSpeed_ > 1 || brSpeed_ > 1 || brSpeed_ > 1)

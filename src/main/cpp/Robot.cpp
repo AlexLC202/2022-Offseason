@@ -18,7 +18,7 @@ void Robot::RobotInit()
 
     try
     {
-        navx = new AHRS(frc::SPI::Port::kMXP);
+        navx_ = new AHRS(frc::SPI::Port::kMXP);
     }
     catch (const std::exception &e)
     {
@@ -78,6 +78,7 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit()
 {
+    navx_->ZeroYaw(); //COMP remove this if something in auto is added
     controls_->setClimbMode(false);
 }
 
@@ -124,7 +125,7 @@ void Robot::TeleopPeriodic()
     }*/
     
 
-    swerveDrive_.periodic(navx->GetYaw(), controls_);
+    swerveDrive_.periodic(navx_->GetYaw(), controls_);
     //intake_.periodic();
     //channel_.periodic();
     //climb_.periodic(controls_);
