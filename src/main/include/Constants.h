@@ -40,6 +40,10 @@ namespace InputConstants
     const int RJOY_X = 0;
     const int RJOY_Y = 1;
 
+    const int XBOX_PORT = 2; //TODO get value
+
+    const int FIELD_ORIENT_ID = 0; //TODO get value
+
     const int OUTAKE_BUTTON = 0; //TODO get value
     
     const int CLIMB_TOGGLE_BUTTON = 0; //TODO get value

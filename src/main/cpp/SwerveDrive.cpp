@@ -13,7 +13,7 @@ void SwerveDrive::periodic(double yaw, Controls* controls)
 
 void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
 {
-    double p = frc::SmartDashboard::GetNumber("p", 0);
+    /*double p = frc::SmartDashboard::GetNumber("p", 0);
     frc::SmartDashboard::PutNumber("p", p);
     topRight_->setP(p);
     topLeft_->setP(p);
@@ -25,7 +25,7 @@ void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
     topRight_->setD(d);
     topLeft_->setD(d);
     bottomRight_->setD(d);
-    bottomLeft_->setD(d);
+    bottomLeft_->setD(d);*/
 
 
 

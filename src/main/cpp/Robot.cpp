@@ -84,10 +84,17 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic()
 {
-    /*if(!controls_->getClimbMode())
+    controls_->periodic();
+
+    if(controls_->fieldOrient())
     {
-        climb_.setExtendingState(Climb::extendingState::BRAKED);
-        climb_.setPneumaticState(Climb::pneumaticState::DOWN);
+        navx_->Reset();
+    }
+
+    if(!controls_->getClimbMode())
+    {
+        //climb_.setExtendingState(Climb::extendingState::BRAKED);
+        //climb_.setPneumaticState(Climb::pneumaticState::DOWN);
 
         if (controls_->intakePressed())
         {
@@ -105,7 +112,7 @@ void Robot::TeleopPeriodic()
             channel_.setState(Channel::State::IDLE);
         }
     }
-    else
+    /*else
     {
         intake_.setState(Intake::State::RETRACTED_IDLE);
         channel_.setState(Channel::State::IDLE);
@@ -126,8 +133,8 @@ void Robot::TeleopPeriodic()
     
 
     swerveDrive_.periodic(navx_->GetYaw(), controls_);
-    //intake_.periodic();
-    //channel_.periodic();
+    intake_.periodic();
+    channel_.periodic();
     //climb_.periodic(controls_);
 }
 

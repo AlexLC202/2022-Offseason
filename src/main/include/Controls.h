@@ -8,10 +8,13 @@ class Controls
 {
     public:
         Controls();
+        void periodic();
 
         double getXStrafe();
         double getYStrafe();
         double getTurn();
+
+        bool fieldOrient();
 
         double getClimbPower();
         bool getClimbToggle();
@@ -25,6 +28,7 @@ class Controls
     private:
         bool climbMode_;
 
-        frc::Joystick* lJoy = new frc::Joystick(InputConstants::LJOY_PORT);
-        frc::Joystick* rJoy = new frc::Joystick(InputConstants::RJOY_PORT);
+        frc::Joystick lJoy;
+        frc::Joystick rJoy;
+        frc::Joystick xbox;
 };

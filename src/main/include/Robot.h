@@ -13,8 +13,8 @@
 #include "Constants.h"
 #include "Controls.h"
 #include "SwerveDrive.h"
-//#include "Intake.h"
-//#include "Channel.h"
+#include "Intake.h"
+#include "Channel.h"
 //#include "Climb.h"
 
 class Robot : public frc::TimedRobot
@@ -41,8 +41,8 @@ private:
 
     Controls *controls_ = new Controls();
     SwerveDrive swerveDrive_;
-    //Intake intake_;
-    //Channel channel_;
+    Intake intake_;
+    Channel channel_;
     //Climb climb_;
 
 };
