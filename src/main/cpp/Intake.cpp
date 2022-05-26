@@ -1,8 +1,8 @@
 #include "Intake.h"
 
-Intake::Intake()
+Intake::Intake() : intakeMotor_(IntakeConstants::MOTOR_ID), intakePneumatic_(frc::PneumaticsModuleType::CTREPCM, IntakeConstants::SOLENOID_ID)
 {
-    intakeMotor_->SetNeutralMode(NeutralMode::Coast);
+    intakeMotor_.SetNeutralMode(NeutralMode::Coast);
     //intakePneumatic_->Set(false);
 
     state_ = RETRACTED_IDLE;
@@ -66,25 +66,25 @@ void Intake::run(bool forward)
 {
     if(forward)
     {
-        intakeMotor_->SetVoltage(units::volt_t(4.68)); //TODO test value, also put in constants
+        intakeMotor_.SetVoltage(units::volt_t(4.68)); //TODO test value, also put in constants
     }
     else
     {
-        intakeMotor_->SetVoltage(units::volt_t(-4.68));
+        intakeMotor_.SetVoltage(units::volt_t(-4.68));
     }
 }
 
 void Intake::stop()
 {
-    intakeMotor_->Set(ControlMode::PercentOutput, 0);
+    intakeMotor_.SetVoltage(units::volt_t(0));
 }
 
 void Intake::deploy()
 {
-    intakePneumatic_->Set(true); //TODO test true/false
+    intakePneumatic_.Set(true); //TODO test true/false
 }
 
 void Intake::retract()
 {
-    intakePneumatic_->Set(false);
+    intakePneumatic_.Set(false);
 }

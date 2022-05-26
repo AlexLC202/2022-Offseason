@@ -38,6 +38,10 @@ double Limelight::calcDistance()
     {
         return -1;
     }
+    else
+    {
+        y = getYOff();
+    }
 
     if(abs(getXOff()) > 10) //TODO get value, idk what the units or anything really is
     {

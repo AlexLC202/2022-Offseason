@@ -16,9 +16,9 @@ class Shooter
         enum State
         {
             IDLE,
-            TRACKING,
-            AIMING,
-            SHOOTING,
+            TRACKING, //TODO make tracking and aiming two?
+            REVING,
+            //SHOOTING,
             UNLOADING,
             MANUAL
         };
@@ -28,11 +28,20 @@ class Shooter
         Shooter();
         void periodic();
 
+        double linVelToSensVel(double velocity);
+        double calcFlyPID(double velocity);
         
     private:
-        Limelight limelight;
-        Turret turret;
-        Hood hood;
-        bool hoodZeroing;
-};
+        Limelight limelight_;
+        WPI_TalonFX flywheelMaster_, flywheelSlave_, kickerMotor_;
+        //Turret turret_;
+        Hood hood_;
+        bool hoodZeroing_, flywheelReady_, shotReady_;
 
+        State state_;
+
+        double setPos_, prevError_, integralError_;
+        double fKp_ = 0.0; //TODO tune values
+        double fKi_ = 0.0;
+        double fKd_ = 0;
+};

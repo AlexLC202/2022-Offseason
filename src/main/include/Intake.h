@@ -31,7 +31,7 @@ class Intake
 
     private:
         State state_;
-        WPI_TalonFX* intakeMotor_ = new WPI_TalonFX(IntakeConstants::SOLENOID_ID);
-        frc::Solenoid* intakePneumatic_ = new frc::Solenoid(frc::PneumaticsModuleType::CTREPCM, IntakeConstants::MOTOR_ID);
+        WPI_TalonFX intakeMotor_;
+        frc::Solenoid intakePneumatic_;
 
 };

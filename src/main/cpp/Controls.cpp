@@ -1,40 +1,40 @@
 #include "Controls.h"
 
-Controls::Controls() : lJoy{InputConstants::LJOY_PORT}, rJoy{InputConstants::RJOY_PORT}, xbox{InputConstants::XBOX_PORT}
+Controls::Controls() : lJoy_{InputConstants::LJOY_PORT}, rJoy_{InputConstants::RJOY_PORT}, xbox_{InputConstants::XBOX_PORT}
 {
     //idk
 }
 
 void Controls::periodic()
 {
-    climbMode_ = getClimbToggle();
+    getClimbModeToggle();
 }
 
 double Controls::getXStrafe()
 {
-    double x = lJoy.GetRawAxis(InputConstants::LJOY_X);
+    double x = lJoy_.GetRawAxis(InputConstants::LJOY_X);
     frc::SmartDashboard::PutNumber("X strafe", x);
     return x;
-    //return lJoy->GetRawAxis(InputConstants::LJOY_X) * GeneralConstants::MAX_VOLTAGE;
+    //return lJoy_->GetRawAxis(InputConstants::LJOY_X) * GeneralConstants::MAX_VOLTAGE;
 }
 
 double Controls::getYStrafe()
 {
-    double y = -lJoy.GetRawAxis(InputConstants::LJOY_Y);
+    double y = -lJoy_.GetRawAxis(InputConstants::LJOY_Y);
     frc::SmartDashboard::PutNumber("Y strafe", y);
     return y;
-    //return lJoy->GetRawAxis(InputConstants::LJOY_Y) * GeneralConstants::MAX_VOLTAGE;
+    //return lJoy_->GetRawAxis(InputConstants::LJOY_Y) * GeneralConstants::MAX_VOLTAGE;
 }
 
 double Controls::getTurn()
 {
-    if(climbMode_ && rJoy.GetTrigger())
+    if(climbMode_ && rJoy_.GetTrigger())
     {
         return 0;
     }
     else
     {
-        double turn = rJoy.GetRawAxis(InputConstants::RJOY_X);
+        double turn = rJoy_.GetRawAxis(InputConstants::RJOY_X);
         frc::SmartDashboard::PutNumber("Turn", turn);
         return turn;
         //return rJoy->GetRawAxis(InputConstants::RJOY_X) * (GeneralConstants::MAX_VOLTAGE * GeneralConstants::MAX_VOLTAGE / (SwerveConstants::LENGTH * (SwerveConstants::LENGTH + SwerveConstants::WIDTH * SwerveConstants::WIDTH) / 4) ); //TODO check math
@@ -43,14 +43,14 @@ double Controls::getTurn()
 
 bool Controls::fieldOrient()
 {
-    return lJoy.GetRawButton(InputConstants::FIELD_ORIENT_ID);
+    return lJoy_.GetRawButton(InputConstants::FIELD_ORIENT_ID);
 }
 
 double Controls::getClimbPower() //TODO maybe change to the thumb joystick thing?
 {
-    if(climbMode_ && rJoy.GetTrigger())
+    if(climbMode_ && rJoy_.GetTrigger())
     {
-        return rJoy.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5; //TODO check if max voltage is too much
+        return rJoy_.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5; //TODO check if max voltage is too much
     }
     else
     {
@@ -58,9 +58,9 @@ double Controls::getClimbPower() //TODO maybe change to the thumb joystick thing
     }
 }
 
-bool Controls::getClimbToggle()
+void Controls::getClimbModeToggle()
 {
-    if(lJoy.GetRawButtonPressed(InputConstants::CLIMB_TOGGLE_BUTTON))
+    if(xbox_.GetRawButtonPressed(InputConstants::CLIMB_TOGGLE_BUTTON))
     {
         climbMode_ = !climbMode_;
     }
@@ -68,10 +68,15 @@ bool Controls::getClimbToggle()
 
 bool Controls::intakePressed()
 {
-    return lJoy.GetTrigger();
+    return rJoy_.GetTrigger();
 }
 
 bool Controls::outakePressed()
 {
-    return lJoy.GetRawButton(InputConstants::OUTAKE_BUTTON);
+    return rJoy_.GetRawButton(InputConstants::OUTAKE_BUTTON);
+}
+
+bool Controls::shootPressed()
+{
+    return lJoy_.GetTrigger();
 }

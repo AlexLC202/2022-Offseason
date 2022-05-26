@@ -16,7 +16,7 @@ namespace GeneralConstants
     const double RESISTANCE = MAX_VOLTAGE/STALL_CURRENT;
     const double Kv = ((FREE_SPEED * 2 * M_PI) / 60 ) / (MAX_VOLTAGE - FREE_CURRENT * RESISTANCE);
 
-    const double GOAL_HEIGHT = 0.0; //TODO get values
+    const double GOAL_HEIGHT = 2.641;
 
     /*double rpmToTicksPerDS(double rpm)
     {
@@ -26,8 +26,8 @@ namespace GeneralConstants
 
 namespace LimelightConstants
 {
-    const double ANGLE_OFFSET = 0.0; //TODO get values
-    const double HEIGHT_OFFSET = 0.0;
+    const double ANGLE_OFFSET = 49.4; //TODO get values
+    const double HEIGHT_OFFSET = 0.5334;
 }
 
 namespace InputConstants
@@ -40,13 +40,13 @@ namespace InputConstants
     const int RJOY_X = 0;
     const int RJOY_Y = 1;
 
-    const int XBOX_PORT = 2; //TODO get value
+    const int XBOX_PORT = 2;
 
-    const int FIELD_ORIENT_ID = 0; //TODO get value
+    const int FIELD_ORIENT_ID = 5; //TODO get value
 
-    const int OUTAKE_BUTTON = 0; //TODO get value
+    const int OUTAKE_BUTTON = 5; //TODO get value
     
-    const int CLIMB_TOGGLE_BUTTON = 0; //TODO get value
+    const int CLIMB_TOGGLE_BUTTON = 5; //TODO get value
 }
 
 namespace SwerveConstants
@@ -90,25 +90,39 @@ namespace SwerveConstants
 
 namespace IntakeConstants
 {
-    const int MOTOR_ID = 50;
+    const int MOTOR_ID = 40;
     const int SOLENOID_ID = 0;
 }
 
-namespace ChannelConstants
+namespace ChannelConstants //TODO delete
 {
     const int MOTOR_ID = 40;
 }
 
 namespace ClimbConstants
 {
-    const int MASTER_ID = 0; //TODO get values
-    const int SLAVE_ID = 0;
-    const int PNEUMATIC_1_ID = 0;
-    const int PNEUMATIC_2_ID = 0;
-    const int BRAKE_ID = 0;
+    const int MASTER_ID = 30;
+    const int SLAVE_ID = 31;
+    const int PNEUMATIC_1_ID = 3;
+    const int PNEUMATIC_2_ID = 2;
+    const int BRAKE_ID = 1;
 }
 
 namespace ShooterConstants
 {
-    const int HOOD_ID = 0; //TODO get values
+    
+    const int HOOD_ID = 19;
+    const int TURRET_ID = 20;
+    const int KICKER_ID = 21;
+    const int FLYWHEEL_SLAVE_ID = 22;
+    const int FLYWHEEL_MASTER_ID = 23;
+
+    const int MAX_TICKS = -4300;
+    const double MAX_ANGLE = 60; //TODO get values
+    const double MIN_ANGLE = 40;
+
+    const double TICKS_PER_DEGREE = -2150; //TODO get value
+
+    const double FLYWHEEL_RADIUS = 0.0508; //TODO 2 inches, make more precise
+    const double FLYWHEEL_GEAR_RATIO = 1.5; //TODO get value
 }

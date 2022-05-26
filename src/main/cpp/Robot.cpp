@@ -91,6 +91,7 @@ void Robot::TeleopPeriodic()
         navx_->Reset();
     }
 
+    //TODO implement robot state machine?
     if(!controls_->getClimbMode())
     {
         //climb_.setExtendingState(Climb::extendingState::BRAKED);
@@ -99,17 +100,27 @@ void Robot::TeleopPeriodic()
         if (controls_->intakePressed())
         {
             intake_.setState(Intake::State::INTAKING);
-            channel_.setState(Channel::State::INTAKING);
+            //channel_.setState(Channel::State::INTAKING);
         }
         else if (controls_->outakePressed())
         {
            intake_.setState(Intake::State::OUTAKING);
-            channel_.setState(Channel::State::OUTAKING);
+            //channel_.setState(Channel::State::OUTAKING);
         }
         else
         {
             intake_.setState(Intake::State::RETRACTED_IDLE);
-            channel_.setState(Channel::State::IDLE);
+            //channel_.setState(Channel::State::IDLE);
+        }
+
+
+        if(controls_->shootPressed())
+        {
+            shooter_.setState(Shooter::REVING);
+        }
+        else
+        {
+            shooter_.setState(Shooter::TRACKING); //TODO change to tracking eventually
         }
     }
     /*else
@@ -134,7 +145,8 @@ void Robot::TeleopPeriodic()
 
     swerveDrive_.periodic(navx_->GetYaw(), controls_);
     intake_.periodic();
-    channel_.periodic();
+    shooter_.periodic();
+    //channel_.periodic();
     //climb_.periodic(controls_);
 }
 
@@ -144,7 +156,10 @@ void Robot::DisabledInit()
     //intake_.retract();
 }
 
-void Robot::DisabledPeriodic() {}
+void Robot::DisabledPeriodic() 
+{
+    //shooter_.setState(Shooter::IDLE);
+}
 
 void Robot::TestInit() {}
 

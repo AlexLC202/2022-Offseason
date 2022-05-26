@@ -12,28 +12,34 @@ class Hood
         enum State
         {
             IDLE, 
-            MOVING,
+            AIMING,
             ZEROING,
-            AIMED
         };
         State getState();
         void setState(State state);
+
+        bool isReady();
 
         Hood();
         void periodic();
 
         void zero();
         void setWantedPos(double setPos);
-        void moveToPos();
+        void move();
         
         double calcPID();
-        void resetPID();
+        double angleToTicks(double angle);
+        //void resetPID();
 
     private:
-        WPI_TalonFX* hood_ = new WPI_TalonFX(ShooterConstants::HOOD_ID);
-        double pos_, setPos_;
-        double kP_ = 0.0;
+        WPI_TalonFX hoodMotor_;
+
+        State state_;
+        double setPos_, prevError_, integralError_;
+        double kP_ = 0.0005; //TODO tune values
         double kI_ = 0.0;
         double kD_ = 0.0;
+
+        bool atPos_;
         
 };

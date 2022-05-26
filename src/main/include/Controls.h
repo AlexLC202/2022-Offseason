@@ -17,10 +17,12 @@ class Controls
         bool fieldOrient();
 
         double getClimbPower();
-        bool getClimbToggle();
+        void getClimbModeToggle();
 
         bool intakePressed();
         bool outakePressed();
+
+        bool shootPressed();
 
         bool getClimbMode(){ return climbMode_; }
         void setClimbMode(bool climbMode){ climbMode_ = climbMode; }
@@ -28,7 +30,7 @@ class Controls
     private:
         bool climbMode_;
 
-        frc::Joystick lJoy;
-        frc::Joystick rJoy;
-        frc::Joystick xbox;
+        frc::Joystick lJoy_;
+        frc::Joystick rJoy_;
+        frc::Joystick xbox_;
 };
