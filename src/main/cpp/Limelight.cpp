@@ -38,30 +38,20 @@ double Limelight::calcDistance()
     {
         return -1;
     }
-    else
-    {
-        y = getYOff();
-    }
-
-    if(abs(getXOff()) > 10) //TODO get value, idk what the units or anything really is
-    {
-        return -1;
-    }
+    
+    y = getYOff();
 
     double angle = (y + LimelightConstants::ANGLE_OFFSET) * (M_PI / 180);
 
     return (GeneralConstants::GOAL_HEIGHT - LimelightConstants::HEIGHT_OFFSET) / tan(angle);
 }
 
-void Limelight::setLEDMode(std::string mode)
+void Limelight::lightOn(bool light)
 {
-    if(mode == "OFF"){
-        table->PutNumber("ledMode", 1);
-    }
-    if(mode == "BLINK"){
-        table->PutNumber("ledMode", 2);
-    }
-    if(mode == "ON"){
+    if(light){
         table->PutNumber("ledMode", 3);
+    }
+    else{
+        table->PutNumber("ledMode", 1);
     }
 }

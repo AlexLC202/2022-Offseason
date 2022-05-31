@@ -18,7 +18,7 @@ class Limelight{
 
         double calcDistance();
 
-        void setLEDMode(std::string mode);
+        void lightOn(bool light);
         std::shared_ptr<nt::NetworkTable> GetNetworkTable();
 
     private:

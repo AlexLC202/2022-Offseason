@@ -131,7 +131,7 @@ double SwerveModule::findError(double setAngle)
 
 double SwerveModule::getDriveVelocity()
 {
-    return (driveMotor_.GetSelectedSensorVelocity() / 2048) * 10 * SwerveConstants::DRIVE_GEAR_RATIO * SwerveConstants::TREAD_DIAMETER;
+    return (driveMotor_.GetSelectedSensorVelocity() / 2048) * 10 * SwerveConstants::DRIVE_GEAR_RATIO * 2 * M_PI * SwerveConstants::TREAD_RADIUS;
 }
 
 double SwerveModule::getAngle()

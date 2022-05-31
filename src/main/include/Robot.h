@@ -16,6 +16,7 @@
 #include "Intake.h"
 //#include "Channel.h"
 #include "Shooter.h"
+#include "Limelight.h"
 //#include "Climb.h"
 
 class Robot : public frc::TimedRobot
@@ -39,11 +40,12 @@ private:
     std::string m_autoSelected;
 
     AHRS *navx_;
+    Limelight* limelight_ = new Limelight();
 
-    Controls *controls_ = new Controls();
-    SwerveDrive swerveDrive_;
+    Controls* controls_ = new Controls();
+    SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
+    Shooter* shooter_ = new Shooter(limelight_);
     Intake intake_;
-    Shooter shooter_;
     //Channel channel_;
     //Climb climb_;
 

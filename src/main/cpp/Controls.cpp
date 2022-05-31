@@ -13,22 +13,26 @@ void Controls::periodic()
 double Controls::getXStrafe()
 {
     double x = lJoy_.GetRawAxis(InputConstants::LJOY_X);
-    frc::SmartDashboard::PutNumber("X strafe", x);
-    return x;
-    //return lJoy_->GetRawAxis(InputConstants::LJOY_X) * GeneralConstants::MAX_VOLTAGE;
+    if(abs(x) < 0.05) //TODO get value
+    {
+        return 0;
+    }
+    return (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
 }
 
 double Controls::getYStrafe()
 {
     double y = -lJoy_.GetRawAxis(InputConstants::LJOY_Y);
-    frc::SmartDashboard::PutNumber("Y strafe", y);
-    return y;
-    //return lJoy_->GetRawAxis(InputConstants::LJOY_Y) * GeneralConstants::MAX_VOLTAGE;
+    if(abs(y) < 0.05) //TODO get value
+    {
+        return 0;
+    }
+    return (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
 }
 
 double Controls::getTurn()
 {
-    if(climbMode_ && rJoy_.GetTrigger())
+    /*if(climbMode_ && rJoy_.GetTrigger())
     {
         return 0;
     }
@@ -38,7 +42,14 @@ double Controls::getTurn()
         frc::SmartDashboard::PutNumber("Turn", turn);
         return turn;
         //return rJoy->GetRawAxis(InputConstants::RJOY_X) * (GeneralConstants::MAX_VOLTAGE * GeneralConstants::MAX_VOLTAGE / (SwerveConstants::LENGTH * (SwerveConstants::LENGTH + SwerveConstants::WIDTH * SwerveConstants::WIDTH) / 4) ); //TODO check math
+    }*/
+
+    double turn = rJoy_.GetRawAxis(InputConstants::RJOY_X);
+    if(abs(turn) < 0.05) //TODO get value
+    {
+        return 0;
     }
+    return (turn > 0) ? (turn - 0.05) / 0.95 : (turn + 0.05) / 0.95;
 }
 
 bool Controls::fieldOrient()

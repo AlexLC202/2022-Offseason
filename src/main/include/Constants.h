@@ -53,7 +53,7 @@ namespace SwerveConstants
 {
     const double WIDTH = 29; 
     const double LENGTH = 29;
-    const double TREAD_DIAMETER = 0.0; //TODO get value
+    const double TREAD_RADIUS = 0.0508; //TODO get value
     const double DRIVE_GEAR_RATIO = 1/6.12;
 
     const double trPosAngle = atan2((SwerveConstants::WIDTH/2), (SwerveConstants::LENGTH/2));
@@ -117,12 +117,18 @@ namespace ShooterConstants
     const int FLYWHEEL_SLAVE_ID = 22;
     const int FLYWHEEL_MASTER_ID = 23;
 
-    const int MAX_TICKS = -4300;
-    const double MAX_ANGLE = 60; //TODO get values
-    const double MIN_ANGLE = 40;
+    const int MAX_HOOD_TICKS = -4300;
+    const double MAX_HOOD_ANGLE = 60; //TODO get values
+    const double MIN_HOOD_ANGLE = 40;
 
-    const double TICKS_PER_DEGREE = -2150; //TODO get value
+    const double HOOD_ZERO_CURRENT = 2.8; //TODO test
+    const double TICKS_PER_HOOD_DEGREE = -2150; //TODO get value
 
     const double FLYWHEEL_RADIUS = 0.0508; //TODO 2 inches, make more precise
-    const double FLYWHEEL_GEAR_RATIO = 1.5; //TODO get value
+    const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
+    const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
+
+    const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
+    const double TICKS_PER_TURRET_DEGREE = -175; //TODO test value
+
 }

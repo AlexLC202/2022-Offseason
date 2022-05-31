@@ -12,6 +12,7 @@ class Hood
         enum State
         {
             IDLE, 
+            IMMOBILE,
             AIMING,
             ZEROING,
         };
@@ -23,6 +24,7 @@ class Hood
         Hood();
         void periodic();
 
+        void reset();
         void zero();
         void setWantedPos(double setPos);
         void move();
@@ -35,6 +37,7 @@ class Hood
         WPI_TalonFX hoodMotor_;
 
         State state_;
+        bool zeroed_;
         double setPos_, prevError_, integralError_;
         double kP_ = 0.0005; //TODO tune values
         double kI_ = 0.0;

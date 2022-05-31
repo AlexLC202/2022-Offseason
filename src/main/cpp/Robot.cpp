@@ -80,6 +80,7 @@ void Robot::TeleopInit()
 {
     navx_->ZeroYaw(); //COMP remove this if something in auto is added
     controls_->setClimbMode(false);
+    limelight_->lightOn(true);
 }
 
 void Robot::TeleopPeriodic()
@@ -116,11 +117,11 @@ void Robot::TeleopPeriodic()
 
         if(controls_->shootPressed())
         {
-            shooter_.setState(Shooter::REVING);
+            shooter_->setState(Shooter::REVING);
         }
         else
         {
-            shooter_.setState(Shooter::TRACKING); //TODO change to tracking eventually
+            shooter_->setState(Shooter::TRACKING); //TODO change to tracking eventually
         }
     }
     /*else
@@ -143,9 +144,9 @@ void Robot::TeleopPeriodic()
     }*/
     
 
-    swerveDrive_.periodic(navx_->GetYaw(), controls_);
+    swerveDrive_->periodic(navx_->GetYaw(), controls_);
+    shooter_->periodic(navx_->GetYaw(), swerveDrive_);
     intake_.periodic();
-    shooter_.periodic();
     //channel_.periodic();
     //climb_.periodic(controls_);
 }
@@ -154,11 +155,16 @@ void Robot::DisabledInit()
 {
     //climb_.setPneumatics(true, false);
     //intake_.retract();
+
+    shooter_->setState(Shooter::IDLE);
+    shooter_->periodic(navx_->GetYaw(), swerveDrive_);
 }
 
 void Robot::DisabledPeriodic() 
 {
-    //shooter_.setState(Shooter::IDLE);
+    shooter_->reset();
+    swerveDrive_->setFoundGoal(false);
+    limelight_->lightOn(false);
 }
 
 void Robot::TestInit() {}

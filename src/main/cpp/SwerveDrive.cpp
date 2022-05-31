@@ -1,8 +1,8 @@
 #include "SwerveDrive.h"
 
-SwerveDrive::SwerveDrive()
+SwerveDrive::SwerveDrive(Limelight* limelight)
 {
-
+    limelight_ = limelight;
 }
 
 void SwerveDrive::periodic(double yaw, Controls* controls)
@@ -83,6 +83,9 @@ void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 
 void SwerveDrive::calcOdometry()
 {
+    double angle = yaw_ * M_PI / 180;
+    double goalAngle = (yaw_ - yawOffset_) * M_PI / 180;
+
     double frX = topRight_->getDriveVelocity() * sin(topRight_->getAngle());
     double frY = topRight_->getDriveVelocity() * cos(topRight_->getAngle());
     double flX = topLeft_->getDriveVelocity() * sin(topLeft_->getAngle());
@@ -95,11 +98,17 @@ void SwerveDrive::calcOdometry()
     double avgX = (frX + flX + brX + blX) / 4;
     double avgY = (frY + flY + brY + blY) / 4;
     
-    double rotatedX = avgX * cos(yaw_) + avgY * sin(yaw_);
-    double rotatedY = avgX * sin(yaw_) + avgY * cos(yaw_);
+    double rotatedX = avgX * cos(angle) + avgY * sin(angle);
+    double rotatedY = avgX * -sin(angle) + avgY * cos(angle);
+
+    goalXVel_ = avgX * cos(goalAngle) + avgY * sin(goalAngle);
+    goalYVel_ = avgX * -sin(goalAngle) + avgY * cos(goalAngle);
 
     x_ += rotatedX * GeneralConstants::Kdt;
     y_ += rotatedY * GeneralConstants::Kdt;
+
+    goalX_ += goalXVel_ * GeneralConstants::Kdt;
+    goalY_ += goalYVel_ * GeneralConstants::Kdt;
 }
 
 /*void SwerveDrive::calcOdometry2()
@@ -145,3 +154,61 @@ void SwerveDrive::calcOdometry()
     double yVel = (trYVel + tlYVel + brYVel + blYVel) / 4;
 
 }*/
+
+void SwerveDrive::resetGoalOdometry(double turretAngle)
+{
+    if(!limelight_->hasTarget())
+    {
+        return;
+    }
+
+    foundGoal_ = true;
+    goalY_ = - (limelight_->calcDistance() + 0.6096); //center of goal is origin
+    goalX_ = 0;
+    yawOffset_ = yaw_ - (180 - (turretAngle + limelight_->getXOff()));
+}
+
+bool SwerveDrive::foundGoal()
+{
+    return foundGoal_;
+}
+
+void SwerveDrive::setFoundGoal(bool foundGoal)
+{
+    foundGoal_ = foundGoal;
+}
+
+double SwerveDrive::getGoalX()
+{
+    return goalX_;
+}
+
+double SwerveDrive::getGoalY()
+{
+    return goalY_;
+}
+
+double SwerveDrive::getGoalXVel()
+{
+    if(limelight_->hasTarget())
+    {
+        return goalXVel_;
+    }
+
+    double angToGoal = (atan2(-goalY_, -goalX_) * 180 / M_PI);
+
+    return goalXVel_ * cos(angToGoal) + goalYVel_ * -sin(angToGoal);
+
+}
+
+double SwerveDrive::getGoalYVel()
+{
+    if(limelight_->hasTarget())
+    {
+        return goalYVel_;
+    }
+
+    double angToGoal = (atan2(-goalY_, -goalX_) * 180 / M_PI);
+
+    return goalXVel_ * sin(angToGoal) + goalYVel_ * cos(angToGoal);
+}
