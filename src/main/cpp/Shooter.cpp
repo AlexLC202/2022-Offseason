@@ -8,12 +8,11 @@ Shooter::Shooter(Limelight* limelight) : limelight_(limelight), flywheelMaster_(
 
     state_ = IDLE;
     createMap();
-    //TODO constructor stuff for others or this or idk my brain can't focus on anything but what's right in front of it right now and I'm kinda dying I want to become a potato
 }
 
 void Shooter::createMap()
 {
-    ifstream infile("shots.csv");
+    ifstream infile(ShooterConstants::SHOTS_FILE_NAME);
 
     string data;
     double distance, angle, velocity, partDer;
@@ -84,6 +83,7 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
 
     swerveDrive->resetGoalOdometry(turret_.getAngle());
     double hoodAngle, velocity, turretOffset, partDer, distance;
+    frc::SmartDashboard::PutBoolean("found target", swerveDrive->foundGoal());
 
     if(limelight_->hasTarget())
     {
@@ -99,28 +99,29 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
         hasShot_ = false;
     }
     
+    frc::SmartDashboard::PutNumber("Distance", distance);
     auto shot = shotsMap_.upper_bound(distance);
     if (shot != shotsMap_.begin() && shot != shotsMap_.end()) //TOOD test with distance?
     {
         shot--;
         partDer = get<2>(shot->second);
 
-        tuple<double, double, double> shotVals = calcShootingWhileMoving(get<0>(shot->second), get<1>(shot->second), swerveDrive->getGoalXVel(), swerveDrive->getGoalYVel());
+        tuple<double, double, double> shotVals = calcShootingWhileMoving(get<0>(shot->second), get<1>(shot->second), swerveDrive->getRGoalXVel(), swerveDrive->getRGoalYVel());
         hoodAngle = get<0>(shotVals);
         velocity = get<1>(shotVals);
         turretOffset = get<2>(shotVals);
 
         hasShot_ = true;
 
-        frc::SmartDashboard::PutNumber("Distance", distance);
-        frc::SmartDashboard::PutNumber("Map Angle", hoodAngle);
-        frc::SmartDashboard::PutNumber("Map Velocity", velocity);
-        frc::SmartDashboard::PutNumber("Turret Offset", turretOffset);
+        frc::SmartDashboard::PutNumber("MAng", hoodAngle);
+        frc::SmartDashboard::PutNumber("MVel", velocity);
+        frc::SmartDashboard::PutNumber("MOffset", turretOffset);
     }
     else
     {
         velocity = 0;
-        hoodAngle = (ShooterConstants::MIN_HOOD_ANGLE + ShooterConstants::MAX_HOOD_ANGLE) / 2;
+        hoodAngle = ShooterConstants::MIN_HOOD_ANGLE;
+        //hoodAngle = (ShooterConstants::MIN_HOOD_ANGLE + ShooterConstants::MAX_HOOD_ANGLE) / 2;
         turretOffset = 0;
         partDer = 1;
         hasShot_ = false;
@@ -147,22 +148,22 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
     if(hoodAngle > ShooterConstants::MAX_HOOD_ANGLE || hoodAngle < ShooterConstants::MIN_HOOD_ANGLE)
     {
         hasShot_ = false;
-        frc::SmartDashboard::PutBoolean("Hood in range", false);
+        //frc::SmartDashboard::PutBoolean("Hood in range", false);
     }
     else
     {
-        frc::SmartDashboard::PutBoolean("Hood in range", true);
+        //frc::SmartDashboard::PutBoolean("Hood in range", true);
     }
 
     if(velocity < 0 || velocity > ShooterConstants::MAX_VELOCITY)
     {
         velocity = 0;
         hasShot_ = false;
-        frc::SmartDashboard::PutBoolean("Flywheel in range", false);
+        //frc::SmartDashboard::PutBoolean("Flywheel in range", false);
     }
     else
     {
-        frc::SmartDashboard::PutBoolean("Flywheel in range", true);
+        //frc::SmartDashboard::PutBoolean("Flywheel in range", true);
     }
 
     if(turretOffset > 90 || turretOffset < -90)
@@ -170,11 +171,11 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
         std::cout << "Bro wtf is even happening with your math" << std::endl;
         turretOffset = 0;
         hasShot_ = false;
-        frc::SmartDashboard::PutBoolean("Turret in range", false);
+        //frc::SmartDashboard::PutBoolean("Turret in range", false);
     }
     else
     {
-        frc::SmartDashboard::PutBoolean("Turret in range", true);
+        //frc::SmartDashboard::PutBoolean("Turret in range", true);
     }
 
     shotReady_ = (flywheelReady_ && hood_.isReady() && turret_.isAimed() && hasShot_); //TODO something with have ball?
@@ -230,13 +231,14 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
     }
 
     hood_.periodic();
-    turret_.periodic(yaw_, turretOffset, swerveDrive->getGoalX(), swerveDrive->getGoalY(), swerveDrive->foundGoal());
+    turret_.periodic(yaw_, turretOffset, swerveDrive->getGoalX(), swerveDrive->getGoalY(), swerveDrive->getRobotGoalAng(), swerveDrive->foundGoal());
 }
 
 void Shooter::reset()
 {
     hood_.reset();
     turret_.reset();
+    
 }
 
 double Shooter::linVelToSensVel(double velocity)
@@ -247,8 +249,8 @@ double Shooter::linVelToSensVel(double velocity)
 double Shooter::calcFlyPID(double velocity)
 {
     double setAngVel = linVelToSensVel(velocity);
-    frc::SmartDashboard::PutNumber("Wanted sens vel", setAngVel);
-    frc::SmartDashboard::PutNumber("Sens vel", flywheelMaster_.GetSelectedSensorVelocity());
+    frc::SmartDashboard::PutNumber("WSVel", setAngVel);
+    frc::SmartDashboard::PutNumber("SVel", flywheelMaster_.GetSelectedSensorVelocity());
     double error = setAngVel - flywheelMaster_.GetSelectedSensorVelocity();
     flywheelReady_ = (abs(error) < 200); //TODO get value
     //std::cout << error << std::endl;
@@ -262,7 +264,7 @@ double Shooter::calcFlyPID(double velocity)
 
     double power = (fKp_ * error) + (fKi_ * integralError_) + (fKd_ * deltaError) + feedForward;
 
-    frc::SmartDashboard::PutNumber("Flywheel volts", power);
+    //frc::SmartDashboard::PutNumber("Flywheel volts", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE, (double)GeneralConstants::MAX_VOLTAGE);
 }
 
@@ -275,8 +277,24 @@ tuple<double, double, double> Shooter::calcShootingWhileMoving(double hoodAngle,
     double xyVel = sqrt(xVel * xVel + yVel * yVel);
     double newVel = sqrt(xyVel * xyVel + zVel * zVel);
 
-    double turretAngle = -(atan2(yVel, xVel) * 180 / M_PI) + 90;
-    double newHoodAngle = atan2(zVel, xyVel) * 180 / M_PI;
+    double turretAngle, newHoodAngle;
+    if(yVel == 0 && xVel == 0)
+    {
+        turretAngle = 0;
+    }
+    else
+    {
+        turretAngle = -(atan2(yVel, xVel) * 180 / M_PI) + 90;
+    }
+    if(zVel == 0 && xyVel == 0)
+    {
+        newHoodAngle = ShooterConstants::MIN_HOOD_ANGLE;
+        hasShot_ = false;
+    }
+    else
+    {
+        newHoodAngle = atan2(zVel, xyVel) * 180 / M_PI;
+    }
 
     return tuple<double, double, double> (newHoodAngle, newVel, turretAngle);
 

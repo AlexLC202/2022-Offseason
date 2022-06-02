@@ -14,10 +14,9 @@
 #include "Controls.h"
 #include "SwerveDrive.h"
 #include "Intake.h"
-//#include "Channel.h"
 #include "Shooter.h"
 #include "Limelight.h"
-//#include "Climb.h"
+#include "Climb.h"
 
 class Robot : public frc::TimedRobot
 {
@@ -46,7 +45,6 @@ private:
     SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
     Shooter* shooter_ = new Shooter(limelight_);
     Intake intake_;
-    //Channel channel_;
-    //Climb climb_;
+    Climb climb_;
 
 };

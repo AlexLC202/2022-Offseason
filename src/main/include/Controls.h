@@ -17,7 +17,8 @@ class Controls
         bool fieldOrient();
 
         double getClimbPower();
-        void getClimbModeToggle();
+        bool getPneumatic1Toggle();
+        bool getPneumatic2Toggle();
 
         bool intakePressed();
         bool outakePressed();

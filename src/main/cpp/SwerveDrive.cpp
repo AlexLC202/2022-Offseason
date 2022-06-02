@@ -27,8 +27,6 @@ void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
     bottomRight_->setD(d);
     bottomLeft_->setD(d);*/
 
-
-
     calcOdometry();
     calcModules(xSpeed, ySpeed, turn);
 
@@ -41,14 +39,12 @@ void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
 
 void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 {
-    //pain.set(PainLevel::ExtremelyHigh);
-    //frc::SmartDashboard::PutNumber("Yaw", yaw_);
     double angle = yaw_ * M_PI / 180;
 
     double newX = xSpeed * cos(angle) + ySpeed * sin(angle);
     double newY = ySpeed * cos(angle) + xSpeed * -sin(angle);
 
-    double A = newX - (turn); //TODO test without dimensions LLWW/2
+    double A = newX - (turn);
     double B = newX + (turn);
     double C = newY - (turn);
     double D = newY + (turn);
@@ -168,6 +164,19 @@ void SwerveDrive::resetGoalOdometry(double turretAngle)
     yawOffset_ = yaw_ - (180 - (turretAngle + limelight_->getXOff()));
 }
 
+double SwerveDrive::getRobotGoalAng()
+{
+    if(foundGoal_)
+    {
+        return yaw_ - yawOffset_;
+    }
+    else
+    {
+        return 0;
+    }
+    
+}
+
 bool SwerveDrive::foundGoal()
 {
     return foundGoal_;
@@ -188,27 +197,39 @@ double SwerveDrive::getGoalY()
     return goalY_;
 }
 
-double SwerveDrive::getGoalXVel()
+double SwerveDrive::getRGoalXVel()
 {
     if(limelight_->hasTarget())
     {
         return goalXVel_;
     }
 
+    if(goalY_ == 0 && goalX_ ==0)
+    {
+        return 0;
+    }
     double angToGoal = (atan2(-goalY_, -goalX_) * 180 / M_PI);
 
-    return goalXVel_ * cos(angToGoal) + goalYVel_ * -sin(angToGoal);
+    double rGoalXVel = goalXVel_ * cos(angToGoal) + goalYVel_ * -sin(angToGoal);
+    frc::SmartDashboard::PutNumber("RGXV", rGoalXVel);
+    return rGoalXVel;
 
 }
 
-double SwerveDrive::getGoalYVel()
+double SwerveDrive::getRGoalYVel()
 {
     if(limelight_->hasTarget())
     {
         return goalYVel_;
     }
 
+    if(goalY_ == 0 && goalX_ ==0)
+    {
+        return 0;
+    }
     double angToGoal = (atan2(-goalY_, -goalX_) * 180 / M_PI);
 
-    return goalXVel_ * sin(angToGoal) + goalYVel_ * cos(angToGoal);
+    double rGoalYVel = goalXVel_ * sin(angToGoal) + goalYVel_ * cos(angToGoal);
+    frc::SmartDashboard::PutNumber("RGYV", rGoalYVel);
+    return rGoalYVel;
 }

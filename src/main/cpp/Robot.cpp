@@ -81,11 +81,14 @@ void Robot::TeleopInit()
     navx_->ZeroYaw(); //COMP remove this if something in auto is added
     controls_->setClimbMode(false);
     limelight_->lightOn(true);
+    climb_.setPneumatics(true, true);
+
 }
 
 void Robot::TeleopPeriodic()
 {
     controls_->periodic();
+    frc::SmartDashboard::PutBoolean("Climb Mode", controls_->getClimbMode());
 
     if(controls_->fieldOrient())
     {
@@ -95,23 +98,22 @@ void Robot::TeleopPeriodic()
     //TODO implement robot state machine?
     if(!controls_->getClimbMode())
     {
-        //climb_.setExtendingState(Climb::extendingState::BRAKED);
+        climb_.setBrake(true);
+        climb_.setPneumatics(true, true);
+        climb_.stop();
         //climb_.setPneumaticState(Climb::pneumaticState::DOWN);
 
         if (controls_->intakePressed())
         {
             intake_.setState(Intake::State::INTAKING);
-            //channel_.setState(Channel::State::INTAKING);
         }
         else if (controls_->outakePressed())
         {
            intake_.setState(Intake::State::OUTAKING);
-            //channel_.setState(Channel::State::OUTAKING);
         }
         else
         {
             intake_.setState(Intake::State::RETRACTED_IDLE);
-            //channel_.setState(Channel::State::IDLE);
         }
 
 
@@ -121,34 +123,35 @@ void Robot::TeleopPeriodic()
         }
         else
         {
-            shooter_->setState(Shooter::TRACKING); //TODO change to tracking eventually
+            shooter_->setState(Shooter::TRACKING);
         }
     }
-    /*else
+    else
     {
         intake_.setState(Intake::State::RETRACTED_IDLE);
-        channel_.setState(Channel::State::IDLE);
+        shooter_->setState(Shooter::State::MANUAL);
 
-        if(controls_->getClimbToggle())
+        climb_.setBrake(false);
+
+        if(controls_->getPneumatic1Toggle())
         {
-            if(climb_.getPneumaticState() == Climb::pneumaticState::DOWN || climb_.getPneumaticState() == Climb::pneumaticState::HALF_UP)
-            {
-                climb_.setPneumaticState(Climb::pneumaticState::UP);
-            }
-            else
-            {
-                climb_.setPneumaticState(Climb::pneumaticState::HALF_UP);
-            }
+            climb_.togglePneumatic1();
         }
+
+        if(controls_->getPneumatic2Toggle())
+        {
+            climb_.togglePneumatic2();
+        }
+
+        climb_.extendArms(controls_->getClimbPower()); //TODO get direction right
         
-    }*/
+    }
     
 
     swerveDrive_->periodic(navx_->GetYaw(), controls_);
     shooter_->periodic(navx_->GetYaw(), swerveDrive_);
     intake_.periodic();
-    //channel_.periodic();
-    //climb_.periodic(controls_);
+    climb_.periodic();
 }
 
 void Robot::DisabledInit()
@@ -156,11 +159,15 @@ void Robot::DisabledInit()
     //climb_.setPneumatics(true, false);
     //intake_.retract();
 
+    shooter_->reset();
+    swerveDrive_->setFoundGoal(false);
+    limelight_->lightOn(false);
+
     shooter_->setState(Shooter::IDLE);
     shooter_->periodic(navx_->GetYaw(), swerveDrive_);
 }
 
-void Robot::DisabledPeriodic() 
+void Robot::DisabledPeriodic() //TODO does this even do anything
 {
     shooter_->reset();
     swerveDrive_->setFoundGoal(false);

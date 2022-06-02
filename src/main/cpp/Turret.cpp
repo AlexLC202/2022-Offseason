@@ -9,12 +9,13 @@ Turret::Turret(Limelight* limelight) : turretMotor_(ShooterConstants::TURRET_ID)
     state_ = IDLE;
 }
 
-void Turret::periodic(double yaw, double offset, double goalX, double goalY, bool foundGoal)
+void Turret::periodic(double yaw, double offset, double goalX, double goalY, double robotGoalAng, bool foundGoal)
 {
     yaw_ = yaw;
     offset_ = offset;
     goalX_ = goalX;
     goalY_ = goalY;
+    robotGoalAng_ = robotGoalAng;
     foundGoal_ = foundGoal;
 
     if(!zeroed_)
@@ -44,7 +45,7 @@ void Turret::periodic(double yaw, double offset, double goalX, double goalY, boo
         }
         case TRACKING:
         {
-            turretMotor_.SetNeutralMode(NeutralMode::Brake);
+            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change to brake after testing
             track();
             break;
         }
@@ -112,8 +113,23 @@ void Turret::track()
     }
     else
     {
-        units::volt_t volts(calcPID());
-        turretMotor_.SetVoltage(volts);
+        double volts = calcPID();
+        frc::SmartDashboard::PutNumber("T Volts", volts);
+        if(volts > 0 && (turretMotor_.GetSelectedSensorPosition() > (180 * ShooterConstants::TICKS_PER_TURRET_DEGREE)))
+        {
+            std::cout << "trying to decapitate itself" << std::endl;
+            turretMotor_.SetVoltage(units::volt_t(0));
+        }
+        else if (volts < 0 && turretMotor_.GetSelectedSensorPosition() < (-180 * ShooterConstants::TICKS_PER_TURRET_DEGREE))
+        {
+            std::cout << "trying to decapitate itself" << std::endl;
+            turretMotor_.SetVoltage(units::volt_t(0));
+        }
+        else
+        {
+            //turretMotor_.SetVoltage(volts);
+        }
+        
     }
     
 }
@@ -121,32 +137,51 @@ void Turret::track()
 double Turret::calcFeedForward()
 {
     double yawVel = (yaw_ - prevYaw_) / GeneralConstants::Kdt;
+    prevYaw_ = yaw_;
 
     double radPerSec = -(yawVel * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
     
-    return radPerSec / GeneralConstants::Kv;
+    double ff = radPerSec / GeneralConstants::Kv;
+    frc::SmartDashboard::PutNumber("FF", ff);
+    return ff;
 }
 
 double Turret::calcError()
 {
-    double error;
+    double error, angToGoal;
     if(limelight_->hasTarget())
     {
         error = offset_ + limelight_->getXOff();
     }
     else
     {
-        double angToGoal = -(atan2(-goalY_, -goalX_) * 180 / M_PI) + 90;
-        double wantedTurretAng = angToGoal + (180 - yaw_) + offset_;
+        if(goalX_ == 0 && goalY_ == 0)
+        {
+            error = 0;
+        }
+        else
+        {
+            angToGoal = -(atan2(-goalY_, -goalX_) * 180 / M_PI) + 90;
+            //double wantedTurretAng = angToGoal + (180 - yaw_) + offset_; //TODO I think yaw offset is needed
+            double wantedTurretAng = (180 - robotGoalAng_) + angToGoal + offset_;
 
-        error =  wantedTurretAng - getAngle();
+            error =  wantedTurretAng - getAngle();
+        }
+        frc::SmartDashboard::PutNumber("TN/A", error);
+
+        error = 0;
     }
 
     aimed_ = (abs(error) < 5); //TODO get value
+    frc::SmartDashboard::PutNumber("Terror", error);
+    frc::SmartDashboard::PutNumber("TPos", getAngle());
+    frc::SmartDashboard::PutNumber("TTicks", turretMotor_.GetSelectedSensorPosition());
 
     if(abs(error + getAngle()) > 180)
     {
-        return (error > 0) ? error - 360 : error + 360;
+        double newError = (error > 0) ? error - 360 : error + 360;
+        frc::SmartDashboard::PutNumber("TNError", newError);
+        return newError;
     }
     else
     {
@@ -156,13 +191,14 @@ double Turret::calcError()
 
 double Turret::calcPID()
 {
-    double error = -calcError();
+    double error = calcError();
     
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;
     integralError_ += error * GeneralConstants::Kdt;
     prevError_ = error;
 
-    double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError) + calcFeedForward();
+    double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
+    //power += calcFeedForward();
 
-    return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.5, (double)GeneralConstants::MAX_VOLTAGE * 0.5); //TODO get cap value
+    return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE, (double)GeneralConstants::MAX_VOLTAGE); //TODO get cap value
 }

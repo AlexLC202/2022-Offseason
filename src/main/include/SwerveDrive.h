@@ -9,9 +9,7 @@
 
 #include "SwerveModule.h"
 
-//#include <frc/MotorSafety.h>
-//#include <frc/smartdashboard/SmartDashboard.h>
-//#include <units/units.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 
 class SwerveDrive
 {
@@ -31,8 +29,9 @@ class SwerveDrive
 
         double getGoalX();
         double getGoalY();
-        double getGoalXVel();
-        double getGoalYVel();
+        double getRGoalXVel();
+        double getRGoalYVel();
+        double getRobotGoalAng();
     private:
         SwerveModule* topRight_ = new SwerveModule(SwerveConstants::TR_TURN_ID, SwerveConstants::TR_DRIVE_ID, SwerveConstants::TR_CANCODER_ID, SwerveConstants::TR_CANCODER_OFFSET);
         SwerveModule* topLeft_ = new SwerveModule(SwerveConstants::TL_TURN_ID, SwerveConstants::TL_DRIVE_ID, SwerveConstants::TL_CANCODER_ID, SwerveConstants::TL_CANCODER_OFFSET);

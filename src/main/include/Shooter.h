@@ -21,9 +21,8 @@ class Shooter
         enum State
         {
             IDLE,
-            TRACKING, //TODO make tracking and aiming two?
+            TRACKING,
             REVING,
-            //SHOOTING,
             UNLOADING,
             MANUAL
         };

@@ -39,7 +39,7 @@ class Hood
         State state_;
         bool zeroed_;
         double setPos_, prevError_, integralError_;
-        double kP_ = 0.0005; //TODO tune values
+        double kP_ = 0.00005; //TODO tune values
         double kI_ = 0.0;
         double kD_ = 0.0;
 

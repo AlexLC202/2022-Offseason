@@ -25,7 +25,7 @@ class Turret
         double getAngle();
 
         Turret(Limelight* limelight);
-        void periodic(double yaw, double offset, double goalX, double goalY, bool foundGoal);
+        void periodic(double yaw, double offset, double goalX, double goalY, double robotGoalAng, bool foundGoal);
         void zero();
         void reset();
 
@@ -42,10 +42,10 @@ class Turret
 
         State state_;
         bool zeroed_, aimed_, foundGoal_;
-        double prevYaw_, yaw_, offset_, goalX_, goalY_;
+        double prevYaw_, yaw_, offset_, goalX_, goalY_, robotGoalAng_;
 
         double prevError_, integralError_;
-        double tkP_ = 0.01;
-        double tkI_ = 0.0;
-        double tkD_ = 0.0;
+        double tkP_ = 0.3; //TODO tune, tuned with physics and that might be bad rn
+        double tkI_ = 0.0; //0.3, 0.0, 0.015 with sim
+        double tkD_ = 0.015;
 };

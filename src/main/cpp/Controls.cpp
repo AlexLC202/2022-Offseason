@@ -7,13 +7,16 @@ Controls::Controls() : lJoy_{InputConstants::LJOY_PORT}, rJoy_{InputConstants::R
 
 void Controls::periodic()
 {
-    getClimbModeToggle();
+    if(xbox_.GetRawButtonPressed(InputConstants::CLIMB_MODE_TOGGLE_BUTTON))
+    {
+        climbMode_ = !climbMode_;
+    }
 }
 
 double Controls::getXStrafe()
 {
     double x = lJoy_.GetRawAxis(InputConstants::LJOY_X);
-    if(abs(x) < 0.05) //TODO get value
+    if(abs(x) < 0.05)
     {
         return 0;
     }
@@ -23,7 +26,7 @@ double Controls::getXStrafe()
 double Controls::getYStrafe()
 {
     double y = -lJoy_.GetRawAxis(InputConstants::LJOY_Y);
-    if(abs(y) < 0.05) //TODO get value
+    if(abs(y) < 0.05)
     {
         return 0;
     }
@@ -54,27 +57,31 @@ double Controls::getTurn()
 
 bool Controls::fieldOrient()
 {
-    return lJoy_.GetRawButton(InputConstants::FIELD_ORIENT_ID);
+    return xbox_.GetRawButton(InputConstants::FIELD_ORIENT_BUTTON);
 }
 
 double Controls::getClimbPower() //TODO maybe change to the thumb joystick thing?
 {
-    if(climbMode_ && rJoy_.GetTrigger())
+    /*if(climbMode_ && rJoy_.GetTrigger())
     {
         return rJoy_.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5; //TODO check if max voltage is too much
     }
     else
     {
         return 0;
-    }
+    }*/
+
+    return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_Y) * 0.5 * GeneralConstants::MAX_VOLTAGE;
 }
 
-void Controls::getClimbModeToggle()
+bool Controls::getPneumatic1Toggle()
 {
-    if(xbox_.GetRawButtonPressed(InputConstants::CLIMB_TOGGLE_BUTTON))
-    {
-        climbMode_ = !climbMode_;
-    }
+    return xbox_.GetRawButtonPressed(InputConstants::CLIMB_PNEUMATIC1_BUTTON);
+}
+
+bool Controls::getPneumatic2Toggle()
+{
+    return xbox_.GetRawButtonPressed(InputConstants::CLIMB_PNEUMATIC2_BUTTON);
 }
 
 bool Controls::intakePressed()
