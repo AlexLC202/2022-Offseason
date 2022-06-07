@@ -46,12 +46,14 @@ class Shooter
         Turret turret_;
         Hood hood_;
         bool hoodZeroing_, flywheelReady_, shotReady_, hasShot_;
+        bool hasMap_  = false;
+        double mapPoints_ = 0;
 
         State state_;
 
         double setPos_, prevError_, integralError_;
-        double fKp_ = 0.0003; //TODO tune values
-        double fKi_ = 0.0007;
+        double fKp_ = 0.0005; //TODO tune values
+        double fKi_ = 0.004; //0.0005, 0.004, 0.0
         double fKd_ = 0;
 
         double yaw_;

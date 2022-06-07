@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include "string"
+#include "frc/Filesystem.h"
 
 namespace GeneralConstants
 {
@@ -113,8 +114,8 @@ namespace ShooterConstants
     const int FLYWHEEL_MASTER_ID = 23;
 
     const int MAX_HOOD_TICKS = -4300;
-    const double MAX_HOOD_ANGLE = 60; //TODO get values
-    const double MIN_HOOD_ANGLE = 40;
+    const double MAX_HOOD_ANGLE = 70; //TODO get values
+    const double MIN_HOOD_ANGLE = 53.5; //
     const double HOOD_ZERO_CURRENT = 2.8; //TODO test
     const double TICKS_PER_HOOD_DEGREE = -2150; //TODO get value
 
@@ -125,6 +126,6 @@ namespace ShooterConstants
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
-    const std::string SHOTS_FILE_NAME = "shots.csv";
+    const std::string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots.csv";
 
 }

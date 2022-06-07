@@ -80,7 +80,13 @@ void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 void SwerveDrive::calcOdometry()
 {
     double angle = yaw_ * M_PI / 180;
-    double goalAngle = (yaw_ - yawOffset_) * M_PI / 180;
+
+    double goalAngle = (-yaw_ - yawOffset_);
+    goalAngle += 360 * 10;
+    goalAngle = ((int)floor(goalAngle) % 360) + (goalAngle - floor(goalAngle));
+    goalAngle -= 360 * floor(goalAngle / 360 + 0.5);
+    
+    goalAngle = goalAngle * M_PI / 180;
 
     double frX = topRight_->getDriveVelocity() * sin(topRight_->getAngle());
     double frY = topRight_->getDriveVelocity() * cos(topRight_->getAngle());
@@ -94,8 +100,8 @@ void SwerveDrive::calcOdometry()
     double avgX = (frX + flX + brX + blX) / 4;
     double avgY = (frY + flY + brY + blY) / 4;
     
-    double rotatedX = avgX * cos(angle) + avgY * sin(angle);
-    double rotatedY = avgX * -sin(angle) + avgY * cos(angle);
+    double rotatedX = avgX * cos(angle) + avgY * -sin(angle);
+    double rotatedY = avgX * sin(angle) + avgY * cos(angle);
 
     goalXVel_ = avgX * cos(goalAngle) + avgY * sin(goalAngle);
     goalYVel_ = avgX * -sin(goalAngle) + avgY * cos(goalAngle);
@@ -105,6 +111,11 @@ void SwerveDrive::calcOdometry()
 
     goalX_ += goalXVel_ * GeneralConstants::Kdt;
     goalY_ += goalYVel_ * GeneralConstants::Kdt;
+
+    frc::SmartDashboard::PutNumber("x", x_);
+    frc::SmartDashboard::PutNumber("y", y_);
+    frc::SmartDashboard::PutNumber("gx", goalX_);
+    frc::SmartDashboard::PutNumber("gy", goalY_);
 }
 
 /*void SwerveDrive::calcOdometry2()
@@ -161,14 +172,22 @@ void SwerveDrive::resetGoalOdometry(double turretAngle)
     foundGoal_ = true;
     goalY_ = - (limelight_->calcDistance() + 0.6096); //center of goal is origin
     goalX_ = 0;
-    yawOffset_ = yaw_ - (180 - (turretAngle + limelight_->getXOff()));
+    yawOffset_ = -yaw_ - (180 - (turretAngle + limelight_->getXOff()));
 }
 
 double SwerveDrive::getRobotGoalAng()
 {
     if(foundGoal_)
     {
-        return yaw_ - yawOffset_;
+        
+        double robotGoalAng = -yaw_ - yawOffset_;
+
+        robotGoalAng += 360 * 10;
+        robotGoalAng = ((int)floor(robotGoalAng) % 360) + (robotGoalAng - floor(robotGoalAng));
+        robotGoalAng -= 360 * floor(robotGoalAng / 360 + 0.5);
+
+        frc::SmartDashboard::PutNumber("rga", robotGoalAng);
+        return robotGoalAng;
     }
     else
     {

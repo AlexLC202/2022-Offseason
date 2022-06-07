@@ -20,7 +20,8 @@ double Limelight::getYOff()
 bool Limelight::hasTarget()
 {
     double targets = table->GetNumber("tv", -1);
-    if(targets == -1)
+    //std::cout << "limelight targets: " << targets << std::endl;
+    if(targets == -1 || targets == 0)
     {
         return false;
     } 

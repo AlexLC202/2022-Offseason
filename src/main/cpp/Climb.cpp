@@ -60,7 +60,7 @@ void Climb::togglePneumatic2()
 void Climb::extendArms(double power)
 {
     //std::cout << power << std::endl;
-    std::cout << gearboxMaster_.GetSelectedSensorPosition() << std::endl;
+    //std::cout << gearboxMaster_.GetSelectedSensorPosition() << std::endl;
     gearboxMaster_.SetVoltage(units::volt_t(power)); //TODO check if slave motor spins as well
 }
 

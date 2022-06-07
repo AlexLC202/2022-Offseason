@@ -106,6 +106,10 @@ double Hood::calcPID()
 
     integralError_ += error * GeneralConstants::Kdt;
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;
+    if(abs(prevError_) < 50.0) //TODO get value, probably same as above
+    {
+        deltaError = 0;
+    } 
     prevError_ = error;
 
     double power = (kP_*error) + (kI_*integralError_) + (kD_*deltaError);

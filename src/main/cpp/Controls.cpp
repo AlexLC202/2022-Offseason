@@ -10,6 +10,8 @@ void Controls::periodic()
     if(xbox_.GetRawButtonPressed(InputConstants::CLIMB_MODE_TOGGLE_BUTTON))
     {
         climbMode_ = !climbMode_;
+        getPneumatic1Toggle(); //TODO for testing weird buttons
+        getPneumatic2Toggle();
     }
 }
 
@@ -52,7 +54,7 @@ double Controls::getTurn()
     {
         return 0;
     }
-    return (turn > 0) ? (turn - 0.05) / 0.95 : (turn + 0.05) / 0.95;
+    return (turn > 0) ? ((turn - 0.05) / 0.95) * 0.5 : ((turn + 0.05) / 0.95) * 0.5;
 }
 
 bool Controls::fieldOrient()

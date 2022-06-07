@@ -43,6 +43,10 @@ double SwerveModule::calcAngPID(double setAngle)
 
     aIntegralError_ += error * GeneralConstants::Kdt;
     double deltaError = (error - aPrevError_) / GeneralConstants::Kdt;
+    if(abs(aPrevError_) < 3) //TODO get value, probably same as above
+    {
+        deltaError = 0;
+    } 
     aPrevError_ = error;
 
     double power = (akP_*error) + (akI_*aIntegralError_) + (akD_*deltaError); //TODO implement integral anti-windup or just don't use kI
@@ -107,6 +111,7 @@ double SwerveModule::findError(double setAngle)
 
     //frc::SmartDashboard::PutNumber(id_ + "Angle", getAngle());
 
+    //TODO this is kinda wacky and hard to read, change to % if you have the time but it works rn
     double error =  (abs(rawError) <= 180) ? rawError : (rawError > 0) ? rawError - 360 : rawError + 360;
 
     error = (abs(error) <= 90) ? error : (error > 0) ? error - 180 : error + 180;

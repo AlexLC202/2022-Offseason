@@ -143,33 +143,32 @@ void Robot::TeleopPeriodic()
             climb_.togglePneumatic2();
         }
 
-        climb_.extendArms(controls_->getClimbPower()); //TODO get direction right
+        climb_.extendArms(controls_->getClimbPower());
         
     }
     
 
+    frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
     swerveDrive_->periodic(navx_->GetYaw(), controls_);
-    shooter_->periodic(navx_->GetYaw(), swerveDrive_);
+    shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
     intake_.periodic();
     climb_.periodic();
 }
 
 void Robot::DisabledInit()
 {
-    //climb_.setPneumatics(true, false);
-    //intake_.retract();
-
     shooter_->reset();
     swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
 
     shooter_->setState(Shooter::IDLE);
-    shooter_->periodic(navx_->GetYaw(), swerveDrive_);
+    shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything
 {
     shooter_->reset();
+    shooter_->createMap();
     swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
 }

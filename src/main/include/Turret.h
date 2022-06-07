@@ -45,7 +45,7 @@ class Turret
         double prevYaw_, yaw_, offset_, goalX_, goalY_, robotGoalAng_;
 
         double prevError_, integralError_;
-        double tkP_ = 0.3; //TODO tune, tuned with physics and that might be bad rn
-        double tkI_ = 0.0; //0.3, 0.0, 0.015 with sim
-        double tkD_ = 0.015;
+        double tkP_ = 0.06; //TODO tune, tuned with physics only, could be more aggressive
+        double tkI_ = 0.0;  //0.35, 0.0, 0.0001 - old
+        double tkD_ = 0.000008;
 };
