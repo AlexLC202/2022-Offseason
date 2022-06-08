@@ -18,11 +18,6 @@ void Turret::periodic(double yaw, double offset, double goalX, double goalY, dou
     robotGoalAng_ = robotGoalAng;
     foundGoal_ = foundGoal;
 
-    if(!zeroed_)
-    {
-        state_ = ZEROING;
-    }
-
     switch(state_)
     {
         case IDLE:
@@ -37,15 +32,9 @@ void Turret::periodic(double yaw, double offset, double goalX, double goalY, dou
             turretMotor_.SetNeutralMode(NeutralMode::Brake);
             break;
         }
-        case ZEROING:
-        {
-            turretMotor_.SetNeutralMode(NeutralMode::Brake);
-            zero();
-            break;
-        }
         case TRACKING:
         {
-            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change to brake after testing
+            turretMotor_.SetNeutralMode(NeutralMode::Brake);
             track();
             break;
         }
@@ -54,12 +43,6 @@ void Turret::periodic(double yaw, double offset, double goalX, double goalY, dou
 
             break;
         }
-        /*case FLIPPING: //TODO test if even needed
-        {
-            turretMotor_.SetNeutralMode(NeutralMode::Brake);
-            flip();
-            break;
-        }*/
     }
 }
 
@@ -70,10 +53,6 @@ Turret::State Turret::getState()
 
 void Turret::setState(State state)
 {
-    if(state == ZEROING)
-    {
-        zeroed_ = false;
-    }
     state_ = state;
 }
 
@@ -87,22 +66,9 @@ double Turret::getAngle()
     return turretMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_TURRET_DEGREE;
 }
 
-void Turret::zero()
-{
-    turretMotor_.SetVoltage(units::volt_t(-1)); //TODO test direction and speed
-
-    if(turretMotor_.GetSupplyCurrent() > ShooterConstants::TURRET_ZERO_CURRENT)
-    {
-        turretMotor_.SetVoltage(units::volt_t(0));
-        reset();
-        state_ = IMMOBILE;
-    }
-}
-
 void Turret::reset()
 {
     turretMotor_.SetSelectedSensorPosition(0);
-    zeroed_ = true;
 }
 
 void Turret::track()
@@ -114,7 +80,7 @@ void Turret::track()
     else
     {
         double volts = calcPID();
-        frc::SmartDashboard::PutNumber("T Volts", volts);
+        //frc::SmartDashboard::PutNumber("T Volts", volts);
         if(volts > 0 && (turretMotor_.GetSelectedSensorPosition() > (180 * ShooterConstants::TICKS_PER_TURRET_DEGREE)))
         {
             std::cout << "trying to decapitate itself" << std::endl;
@@ -127,7 +93,7 @@ void Turret::track()
         }
         else
         {
-            //turretMotor_.SetVoltage(units::volt_t(volts));
+            turretMotor_.SetVoltage(units::volt_t(volts));
         }
         
     }
@@ -137,7 +103,7 @@ void Turret::track()
 double Turret::calcFeedForward()
 {
     double deltaYaw = yaw_ - prevYaw_;
-    if(abs(deltaYaw) > 300) //TODO get value
+    if(abs(deltaYaw) > 300)
     {
         deltaYaw = (deltaYaw > 0) ? deltaYaw - 360 : deltaYaw + 360;
     }
@@ -148,7 +114,6 @@ double Turret::calcFeedForward()
     double radPerSec = -(yawVel * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
     
     double ff = radPerSec / GeneralConstants::Kv;
-    frc::SmartDashboard::PutNumber("FFV", ff);
     return ff;
 }
 
@@ -168,30 +133,21 @@ double Turret::calcError()
         else
         {
             angToGoal = -(atan2(-goalY_, -goalX_) * 180 / M_PI) + 90;
-            //double wantedTurretAng = angToGoal + (180 - yaw_) + offset_; //TODO I think yaw offset is needed
             double wantedTurretAng = (180 - robotGoalAng_) + angToGoal + offset_;
             
             wantedTurretAng += 360 * 10;
             wantedTurretAng = ((int)floor(wantedTurretAng) % 360) + (wantedTurretAng - floor(wantedTurretAng));
             wantedTurretAng -= 360 * floor(wantedTurretAng / 360 + 0.5);
 
-            frc::SmartDashboard::PutNumber("AtG", angToGoal);
-            frc::SmartDashboard::PutNumber("WTA", wantedTurretAng);
             error =  wantedTurretAng - getAngle();
         }
-        frc::SmartDashboard::PutNumber("TN/A", error);
-
-        error = 0; //REMEMBER THIS SHIT LMAO
     }
 
     frc::SmartDashboard::PutNumber("Terror", error);
-    frc::SmartDashboard::PutNumber("TPos", getAngle());
-    //frc::SmartDashboard::PutNumber("TTicks", turretMotor_.GetSelectedSensorPosition());
 
     if(abs(error + getAngle()) > 180)
     {
         error = (error > 0) ? error - 360 : error + 360;
-        frc::SmartDashboard::PutNumber("TNError", error);
     }
 
     aimed_ = (abs(error) < 3); //TODO get value
@@ -204,6 +160,12 @@ double Turret::calcPID()
     
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;
     integralError_ += error * GeneralConstants::Kdt;
+
+    if(abs(error) < 1)
+    {
+        integralError_ = 0;
+    }
+
     if(abs(prevError_) < 3) //TODO get value, probably same as above
     {
         deltaError = 0;

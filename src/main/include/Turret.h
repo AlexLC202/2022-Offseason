@@ -14,7 +14,6 @@ class Turret
         {
             IDLE,
             IMMOBILE,
-            ZEROING, 
             TRACKING,
             MANUAL
             //FLIPPING,
@@ -26,7 +25,6 @@ class Turret
 
         Turret(Limelight* limelight);
         void periodic(double yaw, double offset, double goalX, double goalY, double robotGoalAng, bool foundGoal);
-        void zero();
         void reset();
 
         void track();
@@ -41,11 +39,11 @@ class Turret
         Limelight* limelight_;
 
         State state_;
-        bool zeroed_, aimed_, foundGoal_;
+        bool aimed_, foundGoal_;
         double prevYaw_, yaw_, offset_, goalX_, goalY_, robotGoalAng_;
 
         double prevError_, integralError_;
-        double tkP_ = 0.06; //TODO tune, tuned with physics only, could be more aggressive
-        double tkI_ = 0.0;  //0.35, 0.0, 0.0001 - old
+        double tkP_ = 0.075; //TODO tune, tuned with physics only, could be more aggressive
+        double tkI_ = 0.0001;  //0.06, 0.0, 0.000008
         double tkD_ = 0.000008;
 };

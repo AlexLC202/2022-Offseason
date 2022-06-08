@@ -9,7 +9,7 @@ Climb::Climb() : gearboxMaster_(ClimbConstants::MASTER_ID), gearboxSlave_(ClimbC
 
 }
 
-Climb::pneumaticState Climb::getPneumaticState()
+/*Climb::pneumaticState Climb::getPneumaticState()
 {
     return pneumaticState_;
 }
@@ -17,7 +17,7 @@ Climb::pneumaticState Climb::getPneumaticState()
 void Climb::setPneumaticState(pneumaticState pneumaticState)
 {
     pneumaticState_ = pneumaticState;
-}
+}*/
 
 void Climb::periodic()
 {
@@ -43,8 +43,8 @@ void Climb::periodic()
 
 void Climb::setPneumatics(bool pneumatic1, bool pneumatic2)
 {
-    pneumatic1_.Set(pneumatic1);
-    pneumatic2_.Set(!pneumatic2);
+    pneumatic1_.Set(!pneumatic1);
+    pneumatic2_.Set(pneumatic2);
 }
 
 void Climb::togglePneumatic1()
@@ -59,8 +59,7 @@ void Climb::togglePneumatic2()
 
 void Climb::extendArms(double power)
 {
-    //std::cout << power << std::endl;
-    //std::cout << gearboxMaster_.GetSelectedSensorPosition() << std::endl;
+    frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     gearboxMaster_.SetVoltage(units::volt_t(power)); //TODO check if slave motor spins as well
 }
 

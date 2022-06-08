@@ -10,7 +10,7 @@ void Controls::periodic()
     if(xbox_.GetRawButtonPressed(InputConstants::CLIMB_MODE_TOGGLE_BUTTON))
     {
         climbMode_ = !climbMode_;
-        getPneumatic1Toggle(); //TODO for testing weird buttons
+        getPneumatic1Toggle();
         getPneumatic2Toggle();
     }
 }
@@ -66,7 +66,7 @@ double Controls::getClimbPower() //TODO maybe change to the thumb joystick thing
 {
     /*if(climbMode_ && rJoy_.GetTrigger())
     {
-        return rJoy_.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5; //TODO check if max voltage is too much
+        return rJoy_.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5;
     }
     else
     {

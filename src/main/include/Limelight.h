@@ -7,6 +7,8 @@
 #include "networktables/NetworkTable.h"
 #include "networktables/NetworkTableInstance.h"
 
+#include <frc/smartdashboard/SmartDashboard.h>
+
 
 class Limelight{
     public:

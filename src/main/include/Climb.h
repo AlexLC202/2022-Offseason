@@ -11,7 +11,7 @@
 class Climb
 {
     public:
-        enum pneumaticState
+        /*enum pneumaticState
         {
             DOWN,
             HALF_UP,
@@ -19,8 +19,7 @@ class Climb
         };
 
     pneumaticState getPneumaticState();
-
-    void setPneumaticState(pneumaticState pneumaticState);
+    void setPneumaticState(pneumaticState pneumaticState);*/
 
     Climb();
     void periodic();
@@ -43,5 +42,5 @@ class Climb
 
         frc::Solenoid brake_;
 
-        pneumaticState pneumaticState_;
+        //pneumaticState pneumaticState_;
 };

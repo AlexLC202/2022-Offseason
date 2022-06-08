@@ -113,11 +113,11 @@ namespace ShooterConstants
     const int FLYWHEEL_SLAVE_ID = 22;
     const int FLYWHEEL_MASTER_ID = 23;
 
-    const int MAX_HOOD_TICKS = -4300;
-    const double MAX_HOOD_ANGLE = 70; //TODO get values
-    const double MIN_HOOD_ANGLE = 53.5; //
+    const int MAX_HOOD_TICKS = -4000;
+    const double MAX_HOOD_ANGLE = 63; //TODO get values
+    const double MIN_HOOD_ANGLE = 43; //yeah
     const double HOOD_ZERO_CURRENT = 2.8; //TODO test
-    const double TICKS_PER_HOOD_DEGREE = -2150; //TODO get value
+    const double TICKS_PER_HOOD_DEGREE = 197.78; //TODO get value
 
     const double FLYWHEEL_RADIUS = 0.0508; //TODO 2 inches, make more precise
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value

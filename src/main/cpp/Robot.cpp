@@ -78,16 +78,16 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit()
 {
-    navx_->ZeroYaw(); //COMP remove this if something in auto is added
     controls_->setClimbMode(false);
-    limelight_->lightOn(true);
-    climb_.setPneumatics(true, true);
+    //limelight_->lightOn(true);
+    //climb_.setPneumatics(false, false);
 
 }
 
 void Robot::TeleopPeriodic()
 {
     controls_->periodic();
+    limelight_->lightOn(true);
     frc::SmartDashboard::PutBoolean("Climb Mode", controls_->getClimbMode());
 
     if(controls_->fieldOrient())
@@ -99,9 +99,8 @@ void Robot::TeleopPeriodic()
     if(!controls_->getClimbMode())
     {
         climb_.setBrake(true);
-        climb_.setPneumatics(true, true);
+        climb_.setPneumatics(false, false);
         climb_.stop();
-        //climb_.setPneumaticState(Climb::pneumaticState::DOWN);
 
         if (controls_->intakePressed())
         {
@@ -163,14 +162,19 @@ void Robot::DisabledInit()
 
     shooter_->setState(Shooter::IDLE);
     shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
+
+    navx_->Reset();
+    swerveDrive_->reset();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything
 {
     shooter_->reset();
-    shooter_->createMap();
     swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
+
+    navx_->Reset();
+    swerveDrive_->reset();
 }
 
 void Robot::TestInit() {}

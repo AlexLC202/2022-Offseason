@@ -40,8 +40,8 @@ class Hood
         bool zeroed_;
         double setPos_, prevError_, integralError_;
         double kP_ = 0.00005; //TODO tune values
-        double kI_ = 0.0;
-        double kD_ = 0.0;
+        double kI_ = 0.00000;
+        double kD_ = 0.000;
 
         bool atPos_;
         

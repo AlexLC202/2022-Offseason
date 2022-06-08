@@ -2,7 +2,6 @@
 
 Hood::Hood() : hoodMotor_(ShooterConstants::HOOD_ID)
 {
-    //hoodMotor_.SetInverted(TalonFXInvertType::CounterClockwise); //TODO test
     hoodMotor_.SetNeutralMode(NeutralMode::Coast);
     reset();
 
@@ -68,13 +67,11 @@ void Hood::reset()
 {
     zeroed_ = true;
     hoodMotor_.SetSelectedSensorPosition(0);
-    //frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MIN_HOOD_ANGLE);
-    //frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 }
 
 void Hood::zero()
 {
-    hoodMotor_.SetVoltage(units::volt_t(-1)); //TODO test direction
+    hoodMotor_.SetVoltage(units::volt_t(1));
 
     if(hoodMotor_.GetSupplyCurrent() > ShooterConstants::HOOD_ZERO_CURRENT)
     {
@@ -98,7 +95,7 @@ void Hood::move()
 
 double Hood::calcPID()
 {
-    frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MIN_HOOD_ANGLE);
+    frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
     frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 
     double error = setPos_ - hoodMotor_.GetSelectedSensorPosition();
@@ -114,10 +111,12 @@ double Hood::calcPID()
 
     double power = (kP_*error) + (kI_*integralError_) + (kD_*deltaError);
 
+    frc::SmartDashboard::PutNumber("HE", error);
+    //frc::SmartDashboard::PutNumber("HP", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE, (double)GeneralConstants::MAX_VOLTAGE);
 }
 
 double Hood::angleToTicks(double angle)
 {
-    return (angle - ShooterConstants::MIN_HOOD_ANGLE) * ShooterConstants::TICKS_PER_HOOD_DEGREE;
+    return (angle - ShooterConstants::MAX_HOOD_ANGLE) * ShooterConstants::TICKS_PER_HOOD_DEGREE;
 }

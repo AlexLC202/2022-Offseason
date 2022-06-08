@@ -9,6 +9,7 @@ Limelight::Limelight()
 
 double Limelight::getXOff()
 {
+    frc::SmartDashboard::PutNumber("LX", table->GetNumber("tx", 10000.0));
     return table->GetNumber("tx", 10000.0);
 }
 
@@ -20,7 +21,6 @@ double Limelight::getYOff()
 bool Limelight::hasTarget()
 {
     double targets = table->GetNumber("tv", -1);
-    //std::cout << "limelight targets: " << targets << std::endl;
     if(targets == -1 || targets == 0)
     {
         return false;
@@ -35,7 +35,7 @@ bool Limelight::hasTarget()
 double Limelight::calcDistance()
 {
     double y;
-    if(!hasTarget())
+    if(!hasTarget() || abs(getXOff()) > 5) //TODO get value, also math if possible to remove
     {
         return -1;
     }

@@ -53,7 +53,7 @@ class Shooter
 
         double setPos_, prevError_, integralError_;
         double fKp_ = 0.0005; //TODO tune values
-        double fKi_ = 0.004; //0.0005, 0.004, 0.0
+        double fKi_ = 0.001; //0.0005, 0.004, 0.0
         double fKd_ = 0;
 
         double yaw_;

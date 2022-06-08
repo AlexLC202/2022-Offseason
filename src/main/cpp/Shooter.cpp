@@ -8,7 +8,6 @@ Shooter::Shooter(Limelight* limelight) : limelight_(limelight), flywheelMaster_(
 
     state_ = IDLE;
     createMap();
-    cout << "constructor called" << endl;
 }
 
 void Shooter::createMap()
@@ -17,10 +16,7 @@ void Shooter::createMap()
     {
         return;
     }
-    ifstream infile(ShooterConstants::SHOTS_FILE_NAME);
-    //src/main/deploy/shots.csv
-    ofstream outfile("testing.csv");
-    outfile.close();
+    ifstream infile(ShooterConstants::SHOTS_FILE_NAME); //src/main/deploy/shots.csv
     
     cout << "started creating a map" << endl;
 
@@ -72,12 +68,9 @@ void Shooter::createMap()
             pair<double, tuple<double, double, double>> distancePoint(distance, shotData);
 
             shotsMap_.insert(distancePoint);
-            cout << "added a point" << endl;
             ++mapPoints_;
 
         }
-
-        cout << "at least found a line" << endl;
     }
 
     hasMap_ = true;
@@ -97,16 +90,14 @@ void Shooter::setState(State state)
 void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
 {
     yaw_ = yaw;
-    createMap();
     frc::SmartDashboard::PutBoolean("map", hasMap_);
-    frc::SmartDashboard::PutNumber("point", mapPoints_);
 
     double hoodAngle, velocity, turretOffset, partDer, distance;
     frc::SmartDashboard::PutBoolean("found target", swerveDrive->foundGoal());
 
-    if(limelight_->hasTarget())
+    if((distance = limelight_->calcDistance()) != -1)
     {
-        distance = limelight_->calcDistance();
+        //idk
     }
     else if(swerveDrive->foundGoal())
     {
@@ -139,20 +130,18 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
     else
     {
         velocity = 0;
-        hoodAngle = ShooterConstants::MIN_HOOD_ANGLE;
+        hoodAngle = ShooterConstants::MAX_HOOD_ANGLE;
         //hoodAngle = (ShooterConstants::MIN_HOOD_ANGLE + ShooterConstants::MAX_HOOD_ANGLE) / 2;
         turretOffset = 0;
         partDer = 1;
         hasShot_ = false;
     }
 
-    //velocity = frc::SmartDashboard::GetNumber("Set velocity", 0);
-    //frc::SmartDashboard::PutNumber("Set velocity", velocity);
+    //frc::SmartDashboard::PutNumber("NVel", velocity);
+    //frc::SmartDashboard::PutNumber("NAng", angle);
+    //frc::SmartDashboard::PutNumber("NTOff", turretOffset);
 
-    //angle = frc::SmartDashboard::GetNumber("Set angle", ShooterConstants::MIN_ANGLE);
-    //frc::SmartDashboard::PutNumber("Set angle", angle);
-
-    //frc::SmartDashboard::PutNumber("Velocity", flywheelMaster_.GetSelectedSensorVelocity() * 20 * M_PI * ShooterConstants::FLYWHEEL_RADIUS / (GeneralConstants::TICKS_PER_ROTATION * ShooterConstants::FLYWHEEL_GEAR_RATIO));
+    frc::SmartDashboard::PutNumber("V", flywheelMaster_.GetSelectedSensorVelocity() * 20 * M_PI * ShooterConstants::FLYWHEEL_RADIUS / (GeneralConstants::TICKS_PER_ROTATION * ShooterConstants::FLYWHEEL_GEAR_RATIO));
 
     if(partDer > 0.5)
     {
@@ -181,8 +170,8 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
     shotReady_ = (flywheelReady_ && hood_.isReady() && turret_.isAimed() && hasShot_); //TODO something with have ball?
     
     //shotReady_ = true; //TODO remove
-    //velocity = 10;
-    //hoodAngle = ShooterConstants::MIN_HOOD_ANGLE;
+    //velocity = 15;
+    //hoodAngle = 65;
     //turretOffset = 0;
 
     switch(state_)
@@ -201,6 +190,7 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
             turret_.setState(Turret::State::TRACKING);
 
             flywheelMaster_.SetVoltage(units::volt_t (0));
+            kickerMotor_.SetVoltage(units::volt_t(0));
             break;
         }
         case REVING: //TODO combine for auto shoot later, hood anti-windup
@@ -256,11 +246,9 @@ double Shooter::linVelToSensVel(double velocity)
 double Shooter::calcFlyPID(double velocity)
 {
     double setAngVel = linVelToSensVel(velocity);
-    frc::SmartDashboard::PutNumber("WSVel", setAngVel);
-    frc::SmartDashboard::PutNumber("SVel", flywheelMaster_.GetSelectedSensorVelocity());
     double error = setAngVel - flywheelMaster_.GetSelectedSensorVelocity();
     flywheelReady_ = (abs(error) < 40); //TODO get value
-    //std::cout << error << std::endl;
+    frc::SmartDashboard::PutNumber("FE", error);
 
     integralError_ += error * GeneralConstants::Kdt;
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;
@@ -275,7 +263,6 @@ double Shooter::calcFlyPID(double velocity)
 
     double power = (fKp_ * error) + (fKi_ * integralError_) + (fKd_ * deltaError) + feedForward;
 
-    //frc::SmartDashboard::PutNumber("Flywheel volts", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE, (double)GeneralConstants::MAX_VOLTAGE);
 }
 
@@ -299,7 +286,7 @@ tuple<double, double, double> Shooter::calcShootingWhileMoving(double hoodAngle,
     }
     if(zVel == 0 && xyVel == 0)
     {
-        newHoodAngle = ShooterConstants::MIN_HOOD_ANGLE;
+        newHoodAngle = ShooterConstants::MAX_HOOD_ANGLE;
         hasShot_ = false;
     }
     else

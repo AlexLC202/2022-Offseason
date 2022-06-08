@@ -24,6 +24,7 @@ class SwerveDrive
         void calcOdometry();
         //void calcOdometry2(); 
         void resetGoalOdometry(double turretAngle);
+        void reset();
         bool foundGoal();
         void setFoundGoal(bool foundGoal);
 
