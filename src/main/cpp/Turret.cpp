@@ -93,7 +93,7 @@ void Turret::track()
         }
         else
         {
-            turretMotor_.SetVoltage(units::volt_t(volts));
+            //turretMotor_.SetVoltage(units::volt_t(volts));
         }
         
     }
@@ -122,7 +122,8 @@ double Turret::calcError()
     double error, angToGoal;
     if(limelight_->hasTarget())
     {
-        error = offset_ + limelight_->getXOff();
+        error = offset_ + limelight_->getAdjustedX();
+        frc::SmartDashboard::PutNumber("TA", getAngle());
     }
     else
     {

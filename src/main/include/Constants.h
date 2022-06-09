@@ -24,7 +24,7 @@ namespace GeneralConstants
 
 namespace LimelightConstants
 {
-    const double ANGLE_OFFSET = 90 - 49.5; //TODO get values more precise? 49.5 form 0 at top
+    const double ANGLE_OFFSET = 90 - 49.5; //49.5 from 0 at top
     const double HEIGHT_OFFSET = 0.5334;
 }
 
@@ -46,7 +46,7 @@ namespace InputConstants
     const int OUTAKE_BUTTON = 5; //TODO get value
     
     const int CLIMB_MODE_TOGGLE_BUTTON = 7;
-    const int CLIMB_PNEUMATIC2_BUTTON = 3; //TODO get values
+    const int CLIMB_PNEUMATIC2_BUTTON = 3;
     const int CLIMB_PNEUMATIC1_BUTTON = 4; 
 }
 
@@ -76,12 +76,7 @@ namespace SwerveConstants
     const int TL_CANCODER_ID = 10;
     const int BR_CANCODER_ID = 8;
     const int BL_CANCODER_ID = 42;
-
-    /*const double TR_CANCODER_OFFSET = 157.0;
-    const double TL_CANCODER_OFFSET = -108.5;
-    const double BR_CANCODER_OFFSET = -18.98;
-    const double BL_CANCODER_OFFSET = 7.91;*/
-
+    
     const double TR_CANCODER_OFFSET = 19.77;
     const double TL_CANCODER_OFFSET = -70.048 + 180;
     const double BR_CANCODER_OFFSET = 17.5 + 180;

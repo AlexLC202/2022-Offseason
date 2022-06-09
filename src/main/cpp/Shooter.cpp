@@ -90,6 +90,7 @@ void Shooter::setState(State state)
 void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
 {
     yaw_ = yaw;
+    swerveDrive->resetGoalOdometry(turret_.getAngle());
     frc::SmartDashboard::PutBoolean("map", hasMap_);
 
     double hoodAngle, velocity, turretOffset, partDer, distance;
@@ -224,8 +225,6 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
             break;
         }
     }
-
-    swerveDrive->resetGoalOdometry(turret_.getAngle());
 
     hood_.periodic();
     turret_.periodic(yaw_, turretOffset, swerveDrive->getGoalX(), swerveDrive->getGoalY(), swerveDrive->getRobotGoalAng(), swerveDrive->foundGoal());

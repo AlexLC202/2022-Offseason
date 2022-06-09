@@ -16,8 +16,10 @@ class Limelight{
 
         double getXOff();
         double getYOff();
+        double getAdjustedX();
         bool hasTarget();
 
+        void adjustAngles(double& x, double& y);
         double calcDistance();
 
         void lightOn(bool light);

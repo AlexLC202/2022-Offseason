@@ -103,8 +103,8 @@ void SwerveDrive::calcOdometry()
     double rotatedX = avgX * cos(angle) + avgY * -sin(angle);
     double rotatedY = avgX * sin(angle) + avgY * cos(angle);
 
-    goalXVel_ = avgX * cos(goalAngle) + avgY * sin(goalAngle);
-    goalYVel_ = avgX * -sin(goalAngle) + avgY * cos(goalAngle);
+    goalXVel_ = avgX * cos(goalAngle) + avgY * -sin(goalAngle);
+    goalYVel_ = avgX * sin(goalAngle) + avgY * cos(goalAngle);
 
     x_ += rotatedX * GeneralConstants::Kdt;
     y_ += rotatedY * GeneralConstants::Kdt;
@@ -172,7 +172,7 @@ void SwerveDrive::resetGoalOdometry(double turretAngle)
     foundGoal_ = true;
     goalY_ = - (limelight_->calcDistance() + 0.6096); //center of goal is origin
     goalX_ = 0;
-    yawOffset_ = -yaw_ - (180 - (turretAngle + limelight_->getXOff()));
+    yawOffset_ = -yaw_ - (180 - (turretAngle + limelight_->getAdjustedX()));
 }
 
 void SwerveDrive::reset()
@@ -226,7 +226,7 @@ double SwerveDrive::getGoalY()
     return goalY_;
 }
 
-double SwerveDrive::getRGoalXVel()
+double SwerveDrive::getRGoalXVel() //TODO implement limelight distance if math works?
 {
     if(limelight_->calcDistance() != -1)
     {
