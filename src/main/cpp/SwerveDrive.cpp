@@ -120,7 +120,7 @@ void SwerveDrive::calcOdometry(double turretAngle)
 
         if(x_ != 0 || y_ != 0)
         {
-            robotGoalAngle_ = yaw_ - 90 + atan2(-y_, -x_) * 180 / M_PI;
+            robotGoalAngle_ = -yaw_ - 90 + atan2(-y_, -x_) * 180 / M_PI;
         }
         else
         {

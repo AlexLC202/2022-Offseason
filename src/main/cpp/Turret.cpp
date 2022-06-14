@@ -134,21 +134,19 @@ void Turret::calcUnloadAng()
         angToGoal = -(atan2(y_, x_) * 180 / M_PI) - 90;
     }
 
-    angToHangar += 360 * 10; //TODO make a global function to normalize angles?
+    angToHangar += 360 * 10;
     angToHangar = ((int)floor(angToHangar) % 360) + (angToHangar - floor(angToHangar));
-    //angToHangar -= 360 * floor(angToHangar / 360 + 0.5);
 
-    angToGoal += 360 * 10; //TODO make a global function to normalize angles?
+    angToGoal += 360 * 10; 
     angToGoal = ((int)floor(angToGoal) % 360) + (angToGoal - floor(angToGoal));
-    //angToGoal -= 360 * floor(angToGoal / 360 + 0.5);
 
     if(abs(angToHangar - angToGoal) < 10) //TODO get value
     {
-        angToHangar += (angToHangar > angToGoal) ? 10 : -10; //TODO I have brain damage, come up with a solution that actually works for all situations later
+        angToHangar += (angToHangar > angToGoal) ? 10 : -10; //TODO incorporate goal diameter?
     }
     //Helpers::normalizeAngle(angToHangar);
 
-    unloadAngle_ = angToHangar - yaw_;
+    unloadAngle_ = 180 + angToHangar - yaw_;
     Helpers::normalizeAngle(unloadAngle_);
 }
 
