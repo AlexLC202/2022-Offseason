@@ -7,6 +7,7 @@
 #include <string.h>
 #include "Controls.h"
 #include "Constants.h"
+#include "Helpers.h"
 
 //#include <frc/MotorSafety.h>
 //#include <frc/smartdashboard/SmartDashboard.h>

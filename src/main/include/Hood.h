@@ -18,6 +18,7 @@ class Hood
         };
         State getState();
         void setState(State state);
+        void setPID(double p, double i, double d);
 
         bool isReady();
 
@@ -39,10 +40,9 @@ class Hood
         State state_;
         bool zeroed_;
         double setPos_, prevError_, integralError_;
-        double kP_ = 0.00005; //TODO tune values
-        double kI_ = 0.00000;
-        double kD_ = 0.000;
-
+        double kP_ = 0.0008; //TODO tune values, also only with physics and this time it's shit
+        double kI_ = 0.000;
+        double kD_ = 0.0000001;
         bool atPos_;
-        
+        //0.0025, 0.0001, 0.0000001
 };

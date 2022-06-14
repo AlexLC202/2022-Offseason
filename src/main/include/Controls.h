@@ -19,11 +19,16 @@ class Controls
         double getClimbPower();
         bool getPneumatic1Toggle();
         bool getPneumatic2Toggle();
+        bool autoClimbPressed();
 
         bool intakePressed();
         bool outakePressed();
 
         bool shootPressed();
+        double getTurretManual();
+
+        bool increaseRange();
+        bool decreaseRange();
 
         bool getClimbMode(){ return climbMode_; }
         void setClimbMode(bool climbMode){ climbMode_ = climbMode; }

@@ -9,14 +9,14 @@ Turret::Turret(Limelight* limelight) : turretMotor_(ShooterConstants::TURRET_ID)
     state_ = IDLE;
 }
 
-void Turret::periodic(double yaw, double offset, double goalX, double goalY, double robotGoalAng, bool foundGoal)
+void Turret::periodic(double yaw, double offset, double robotGoalAng, bool foundGoal, double x, double y)
 {
     yaw_ = yaw;
     offset_ = offset;
-    goalX_ = goalX;
-    goalY_ = goalY;
     robotGoalAng_ = robotGoalAng;
     foundGoal_ = foundGoal;
+    x_ = x;
+    y_ = y;
 
     switch(state_)
     {
@@ -34,13 +34,21 @@ void Turret::periodic(double yaw, double offset, double goalX, double goalY, dou
         }
         case TRACKING:
         {
-            turretMotor_.SetNeutralMode(NeutralMode::Brake);
+            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change
+            track();
+            break;
+        }
+        case UNLOADING:
+        {
+            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change
+            calcUnloadAng();
             track();
             break;
         }
         case MANUAL:
         {
-
+            turretMotor_.SetVoltage(units::volt_t(manualVolts_));
+            calcError(); //TODO remove, just for printing values
             break;
         }
     }
@@ -56,9 +64,19 @@ void Turret::setState(State state)
     state_ = state;
 }
 
+void Turret::setManualVolts(double manualVolts)
+{
+    manualVolts_ = manualVolts;
+}
+
 bool Turret::isAimed()
 {
     return aimed_;
+}
+
+bool Turret::unloadReady()
+{
+    return unloadReady_;
 }
 
 double Turret::getAngle()
@@ -100,6 +118,40 @@ void Turret::track()
     
 }
 
+void Turret::calcUnloadAng()
+{
+    double angToHangar = 0;
+    double xDist = x_ - GeneralConstants::HANGAR_X;
+    double yDist = y_ - GeneralConstants::HANGAR_Y;
+    if(xDist != 0 || yDist != 0)
+    {
+        angToHangar = -(atan2(yDist, xDist) * 180 / M_PI) - 90;
+    }
+
+    double angToGoal = 0;
+    if(x_ != 0 || y_ != 0)
+    {
+        angToGoal = -(atan2(y_, x_) * 180 / M_PI) - 90;
+    }
+
+    angToHangar += 360 * 10; //TODO make a global function to normalize angles?
+    angToHangar = ((int)floor(angToHangar) % 360) + (angToHangar - floor(angToHangar));
+    //angToHangar -= 360 * floor(angToHangar / 360 + 0.5);
+
+    angToGoal += 360 * 10; //TODO make a global function to normalize angles?
+    angToGoal = ((int)floor(angToGoal) % 360) + (angToGoal - floor(angToGoal));
+    //angToGoal -= 360 * floor(angToGoal / 360 + 0.5);
+
+    if(abs(angToHangar - angToGoal) < 10) //TODO get value
+    {
+        angToHangar += (angToHangar > angToGoal) ? 10 : -10; //TODO I have brain damage, come up with a solution that actually works for all situations later
+    }
+    //Helpers::normalizeAngle(angToHangar);
+
+    unloadAngle_ = angToHangar - yaw_;
+    Helpers::normalizeAngle(unloadAngle_);
+}
+
 double Turret::calcFeedForward()
 {
     double deltaYaw = yaw_ - prevYaw_;
@@ -119,31 +171,24 @@ double Turret::calcFeedForward()
 
 double Turret::calcError()
 {
-    double error, angToGoal;
-    if(limelight_->hasTarget())
+    double error;
+    if(state_ == UNLOADING)
     {
-        error = offset_ + limelight_->getAdjustedX();
-        frc::SmartDashboard::PutNumber("TA", getAngle());
+        error = unloadAngle_ - getAngle();
+    }
+    else if(limelight_->hasTarget())
+    {
+        error = offset_ + limelight_->getAdjustedX() + LimelightConstants::TURRET_ANGLE_OFFSET;
     }
     else
     {
-        if(goalX_ == 0 && goalY_ == 0)
-        {
-            error = 0;
-        }
-        else
-        {
-            angToGoal = -(atan2(-goalY_, -goalX_) * 180 / M_PI) + 90;
-            double wantedTurretAng = (180 - robotGoalAng_) + angToGoal + offset_;
-            
-            wantedTurretAng += 360 * 10;
-            wantedTurretAng = ((int)floor(wantedTurretAng) % 360) + (wantedTurretAng - floor(wantedTurretAng));
-            wantedTurretAng -= 360 * floor(wantedTurretAng / 360 + 0.5);
+        double wantedTurretAng = (180 - robotGoalAng_) + offset_;
+        Helpers::normalizeAngle(wantedTurretAng);
 
-            error =  wantedTurretAng - getAngle();
-        }
+        error =  wantedTurretAng - getAngle();
     }
 
+    frc::SmartDashboard::PutNumber("TA", getAngle());
     frc::SmartDashboard::PutNumber("Terror", error);
 
     if(abs(error + getAngle()) > 180)
@@ -151,7 +196,6 @@ double Turret::calcError()
         error = (error > 0) ? error - 360 : error + 360;
     }
 
-    aimed_ = (abs(error) < 3); //TODO get value
     return error;
 }
 
@@ -162,16 +206,15 @@ double Turret::calcPID()
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;
     integralError_ += error * GeneralConstants::Kdt;
 
-    if(abs(error) < 1)
-    {
-        integralError_ = 0;
-    }
-
-    if(abs(prevError_) < 3) //TODO get value, probably same as above
+    if(abs(prevError_) < 2.5 && abs(error > 5)) //TODO get value, probably same as above
     {
         deltaError = 0;
+        integralError_ = 0;
     } 
     prevError_ = error;
+
+    aimed_ = (abs(error) < 3 && abs(deltaError) < 1); //TODO get value, change back to 2.5
+    unloadReady_ = (abs(error) < 10); //TODO get value
 
     double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
     //calcFeedForward();

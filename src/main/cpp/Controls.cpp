@@ -86,6 +86,11 @@ bool Controls::getPneumatic2Toggle()
     return xbox_.GetRawButtonPressed(InputConstants::CLIMB_PNEUMATIC2_BUTTON);
 }
 
+bool Controls::autoClimbPressed()
+{
+    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_BUTTON);
+}
+
 bool Controls::intakePressed()
 {
     return rJoy_.GetTrigger();
@@ -99,4 +104,19 @@ bool Controls::outakePressed()
 bool Controls::shootPressed()
 {
     return lJoy_.GetTrigger();
+}
+
+bool Controls::increaseRange()
+{
+    return xbox_.GetRawButtonPressed(InputConstants::DISTANCE_UP_BUTTON);
+}
+
+bool Controls::decreaseRange()
+{
+    return xbox_.GetRawButtonPressed(InputConstants::DISTANCE_DOWN_BUTTON);
+}
+
+double Controls::getTurretManual()
+{
+    return xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) * 0.3 * GeneralConstants::MAX_VOLTAGE;
 }

@@ -10,9 +10,13 @@
 
 void Robot::RobotInit()
 {
-    m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
-    m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
-    frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+    //m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
+    //m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
+    //frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+
+    colorChooser.SetDefaultOption("Red", Channel::Color::RED);
+    colorChooser.SetDefaultOption("Blue", Channel::Color::BLUE);
+    frc::SmartDashboard::PutData("Color", &colorChooser);
 
     controls_->setClimbMode(false);
 
@@ -49,31 +53,31 @@ void Robot::RobotPeriodic() {}
  */
 void Robot::AutonomousInit()
 {
-    m_autoSelected = m_chooser.GetSelected();
+    //m_autoSelected = m_chooser.GetSelected();
     // m_autoSelected = SmartDashboard::GetString("Auto Selector",
     //     kAutoNameDefault);
-    fmt::print("Auto selected: {}\n", m_autoSelected);
+    //fmt::print("Auto selected: {}\n", m_autoSelected);
 
-    if (m_autoSelected == kAutoNameCustom)
+    /*if (m_autoSelected == kAutoNameCustom)
     {
         // Custom Auto goes here
     }
     else
     {
         // Default Auto goes here
-    }
+    }*/
 }
 
 void Robot::AutonomousPeriodic()
 {
-    if (m_autoSelected == kAutoNameCustom)
+    /*if (m_autoSelected == kAutoNameCustom)
     {
         // Custom Auto goes here
     }
     else
     {
         // Default Auto goes here
-    }
+    }*/
 }
 
 void Robot::TeleopInit()
@@ -86,13 +90,16 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic()
 {
+    channel_->setColor(colorChooser.GetSelected());
+
     controls_->periodic();
     limelight_->lightOn(true);
     frc::SmartDashboard::PutBoolean("Climb Mode", controls_->getClimbMode());
 
     if(controls_->fieldOrient())
     {
-        navx_->Reset();
+        //navx_->Reset();
+        navx_->ZeroYaw();
     }
 
     //TODO implement robot state machine?
@@ -101,6 +108,15 @@ void Robot::TeleopPeriodic()
         climb_.setBrake(true);
         climb_.setPneumatics(false, false);
         climb_.stop();
+
+        if(controls_->increaseRange())
+        {
+            shooter_->increaseRange();
+        }
+        if(controls_->decreaseRange())
+        {
+            shooter_->decreaseRange();
+        }
 
         if (controls_->intakePressed())
         {
@@ -129,6 +145,7 @@ void Robot::TeleopPeriodic()
     {
         intake_.setState(Intake::State::RETRACTED_IDLE);
         shooter_->setState(Shooter::State::MANUAL);
+        shooter_->setTurretManualVolts(controls_->getTurretManual());
 
         climb_.setBrake(false);
 
@@ -146,34 +163,51 @@ void Robot::TeleopPeriodic()
         
     }
     
+    //TODO remove, testing
+    double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
+    double fKi = frc::SmartDashboard::GetNumber("fKi", 0.0);
+    double fKd = frc::SmartDashboard::GetNumber("fKd", 0.0);
 
-    frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
+    double hKp = frc::SmartDashboard::GetNumber("hKp", 0.0);
+    double hKi = frc::SmartDashboard::GetNumber("hKi", 0.0);
+    double hKd = frc::SmartDashboard::GetNumber("hKd", 0.0);
+
+    if(controls_->autoClimbPressed()) //TODO resusing buttons, remove later
+    {
+        shooter_->setPID(fKp, fKi, fKd);
+        shooter_->setHoodPID(hKp, hKi, hKd);
+    }
+
+    //frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
     swerveDrive_->periodic(navx_->GetYaw(), controls_);
     shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
     intake_.periodic();
     climb_.periodic();
+    //channel_.periodic();
 }
 
 void Robot::DisabledInit()
 {
     shooter_->reset();
-    swerveDrive_->setFoundGoal(false);
+    //swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
 
     shooter_->setState(Shooter::IDLE);
     shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
 
-    navx_->Reset();
+    //navx_->Reset();
+    navx_->ZeroYaw();
     swerveDrive_->reset();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything
 {
     shooter_->reset();
-    swerveDrive_->setFoundGoal(false);
+    //swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
 
-    navx_->Reset();
+    //navx_->Reset();
+    navx_->ZeroYaw();
     swerveDrive_->reset();
 }
 

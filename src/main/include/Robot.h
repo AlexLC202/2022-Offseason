@@ -17,6 +17,7 @@
 #include "Shooter.h"
 #include "Limelight.h"
 #include "Climb.h"
+#include "Channel.h"
 
 class Robot : public frc::TimedRobot
 {
@@ -33,18 +34,23 @@ public:
     void TestPeriodic() override;
 
 private:
-    frc::SendableChooser<std::string> m_chooser;
-    const std::string kAutoNameDefault = "Default";
-    const std::string kAutoNameCustom = "My Auto";
-    std::string m_autoSelected;
+    //frc::SendableChooser<std::string> m_chooser;
+    //const std::string kAutoNameDefault = "Default";
+    //const std::string kAutoNameCustom = "My Auto";
+    //std::string m_autoSelected;
+
+    frc::SendableChooser<Channel::Color> colorChooser;
+
 
     AHRS *navx_;
     Limelight* limelight_ = new Limelight();
 
     Controls* controls_ = new Controls();
+    Channel* channel_ = new Channel();
     SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
-    Shooter* shooter_ = new Shooter(limelight_);
+    Shooter* shooter_ = new Shooter(limelight_, channel_);
     Intake intake_;
     Climb climb_;
+    
 
 };

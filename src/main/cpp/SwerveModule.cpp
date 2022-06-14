@@ -43,9 +43,10 @@ double SwerveModule::calcAngPID(double setAngle)
 
     aIntegralError_ += error * GeneralConstants::Kdt;
     double deltaError = (error - aPrevError_) / GeneralConstants::Kdt;
-    if(abs(aPrevError_) < 3) //TODO get value, probably same as above
+    if(abs(aPrevError_) < 2 && error > 5) //TODO get value
     {
         deltaError = 0;
+        aIntegralError_ = 0;
     } 
     aPrevError_ = error;
 
@@ -87,6 +88,12 @@ double SwerveModule::calcDrivePID(double driveSpeed)
     double deltaError = (error - dPrevError_) / GeneralConstants::Kdt;
     dPrevError_ = error;
 
+    if(abs(deltaError) < 40 && error > 100) //TODO get value, also test if needed
+    {
+        deltaError = 0;
+        dIntegralError_ = 0;
+    }
+
     double radPSec = (driveSpeed * GeneralConstants::MAX_RPM) * 2 * M_PI / 60;
     double feedForward = radPSec / GeneralConstants::Kv;
     //feedForward = 0;
@@ -100,6 +107,11 @@ double SwerveModule::calcDrivePID(double driveSpeed)
 double SwerveModule::findError(double setAngle)
 {
     double rawError = setAngle - getAngle();
+
+    //frc::SmartDashboard::PutNumber(id_ + "Angle", getAngle());
+
+    Helpers::normalizeAngle(rawError);
+
     if(abs(rawError) > 90)
     {
         direction_ = -1;
@@ -108,13 +120,8 @@ double SwerveModule::findError(double setAngle)
     {
         direction_ = 1;
     }
-
-    //frc::SmartDashboard::PutNumber(id_ + "Angle", getAngle());
-
-    //TODO this is kinda wacky and hard to read, change to % if you have the time but it works rn
-    double error =  (abs(rawError) <= 180) ? rawError : (rawError > 0) ? rawError - 360 : rawError + 360;
-
-    error = (abs(error) <= 90) ? error : (error > 0) ? error - 180 : error + 180;
+    
+    return (abs(rawError) <= 90) ? rawError : (rawError > 0) ? rawError - 180 : rawError + 180;
     /*if(abs(error) <= 90)
     {
         return error;
@@ -124,7 +131,7 @@ double SwerveModule::findError(double setAngle)
         return (error > 0) ? error - 180 : error + 180;
     }*/
 
-    return error;
+    //return rawError;
 
     
 
@@ -141,13 +148,8 @@ double SwerveModule::getDriveVelocity()
 
 double SwerveModule::getAngle()
 {
-    //normalizeAngle();
     double angle = cancoder_.GetAbsolutePosition() + offset_;
-
-    if(abs(angle) > 180)
-    {
-        angle = (angle > 0) ? angle - 360 : angle + 360;
-    }
+    Helpers::normalizeAngle(angle);
 
     return angle;
 }

@@ -21,17 +21,18 @@ class SwerveDrive
 
         void calcModules(double xSpeed, double ySpeed, double turn);
 
-        void calcOdometry();
-        //void calcOdometry2(); 
-        void resetGoalOdometry(double turretAngle);
+        void calcOdometry(double turretAngle);
+        //void resetGoalOdometry(double turretAngle);
         void reset();
         bool foundGoal();
         void setFoundGoal(bool foundGoal);
 
-        double getGoalX();
-        double getGoalY();
-        double getRGoalXVel();
-        double getRGoalYVel();
+        double getX();
+        double getY();
+        //double getGoalX();
+        //double getGoalY();
+        double getGoalXVel();
+        double getGoalYVel();
         double getRobotGoalAng();
     private:
         SwerveModule* topRight_ = new SwerveModule(SwerveConstants::TR_TURN_ID, SwerveConstants::TR_DRIVE_ID, SwerveConstants::TR_CANCODER_ID, SwerveConstants::TR_CANCODER_OFFSET);
@@ -39,7 +40,7 @@ class SwerveDrive
         SwerveModule* bottomRight_ = new SwerveModule(SwerveConstants::BR_TURN_ID, SwerveConstants::BR_DRIVE_ID, SwerveConstants::BR_CANCODER_ID, SwerveConstants::BR_CANCODER_OFFSET);
         SwerveModule* bottomLeft_ = new SwerveModule(SwerveConstants::BL_TURN_ID, SwerveConstants::BL_DRIVE_ID, SwerveConstants::BL_CANCODER_ID, SwerveConstants::BL_CANCODER_OFFSET);
 
-        double x_, y_, yaw_, goalX_, goalY_, yawOffset_, goalXVel_, goalYVel_;
+        double x_, y_, yaw_, /*goalX_, goalY_, yawOffset_,*/ goalXVel_, goalYVel_, robotGoalAngle_;
         bool foundGoal_ = false;
 
         Limelight* limelight_;

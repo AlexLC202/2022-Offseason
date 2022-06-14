@@ -3,6 +3,7 @@
 #include <math.h>
 #include "string"
 #include "frc/Filesystem.h"
+#include "rev/ColorSensorV3.h"
 
 namespace GeneralConstants
 {
@@ -20,12 +21,16 @@ namespace GeneralConstants
 
     const double GOAL_HEIGHT = 2.641;
 
+    const double HANGAR_X = -4; //TODO get values
+    const double HANGAR_Y = -8;
+
 }
 
 namespace LimelightConstants
 {
     const double ANGLE_OFFSET = 90 - 49.5; //49.5 from 0 at top
     const double HEIGHT_OFFSET = 0.5334;
+    const double TURRET_ANGLE_OFFSET = 5.0; //TODO get value more precise
 }
 
 namespace InputConstants
@@ -39,15 +44,22 @@ namespace InputConstants
     const int RJOY_Y = 1;
 
     const int XBOX_PORT = 2;
+    const int XBOX_LJOY_X = 0;
     const int XBOX_LJOY_Y = 1;
-
-    const int FIELD_ORIENT_BUTTON = 8;
+    const int XBOX_RJOY_X = 4;
+    const int XBOX_RJOY_Y = 5;
 
     const int OUTAKE_BUTTON = 5; //TODO get value
     
-    const int CLIMB_MODE_TOGGLE_BUTTON = 7;
+    const int AUTO_CLIMB_BUTTON = 1;
+    const int AUTO_CLIMB_CANCEL = 2;
     const int CLIMB_PNEUMATIC2_BUTTON = 3;
     const int CLIMB_PNEUMATIC1_BUTTON = 4; 
+    const int DISTANCE_DOWN_BUTTON = 5;
+    const int DISTANCE_UP_BUTTON = 6; 
+    const int CLIMB_MODE_TOGGLE_BUTTON = 7;
+    const int FIELD_ORIENT_BUTTON = 8;
+
 }
 
 namespace SwerveConstants
@@ -101,7 +113,6 @@ namespace ClimbConstants
 
 namespace ShooterConstants
 {
-    
     const int HOOD_ID = 19;
     const int TURRET_ID = 20;
     const int KICKER_ID = 21;
@@ -113,8 +124,9 @@ namespace ShooterConstants
     const double MIN_HOOD_ANGLE = 43; //yeah
     const double HOOD_ZERO_CURRENT = 2.8; //TODO test
     const double TICKS_PER_HOOD_DEGREE = 197.78; //TODO get value
+    const double HOOD_FF = -0.69;
 
-    const double FLYWHEEL_RADIUS = 0.0508; //TODO 2 inches, make more precise
+    const double FLYWHEEL_RADIUS = 0.0381; //TODO 2 inches, make more precise
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
     const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
 
@@ -122,5 +134,18 @@ namespace ShooterConstants
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
     const std::string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots.csv";
+    const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
+}
+
+namespace ChannelConstants
+{
+    constexpr auto COLOR_SENSOR_PORT = frc::I2C::Port::kOnboard;
+    const double RED_R = 255; //TODO get values
+    const double RED_G = 0;
+    const double RED_B = 0;
+    
+    const double BLUE_R = 0;
+    const double BLUE_G = 0;
+    const double BLUE_B = 255;
 }
