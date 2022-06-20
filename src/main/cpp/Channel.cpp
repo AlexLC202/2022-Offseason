@@ -17,18 +17,17 @@ Channel::Color Channel::getColor()
 
 bool Channel::badIdea()
 {
-    return false; //TODO remove
-
     frc::Color color = colorSensor_.GetColor();
-    double IR = colorSensor_.GetIR();
+    //double IR = colorSensor_.GetIR();
     double proximity = colorSensor_.GetProximity();
 
     if(proximity > 50) //TODO get value
     {
+        frc::SmartDashboard::PutBoolean("BadIdea", false);
         return false;
     }
 
-    if(color_ == Color::RED)
+    /*if(color_ == Color::RED)
     {
         double rError = abs(ChannelConstants::RED_R - color.red);
         double gError = abs(ChannelConstants::RED_G - color.green);
@@ -43,5 +42,25 @@ bool Channel::badIdea()
         double bError = abs(ChannelConstants::BLUE_B - color.blue);
 
         return (abs(rError + gError + bError) < 40); //TODO get value
+    }*/
+
+    Color ballColor;
+    if(color.red > 1.5 * color.blue)
+    {
+        ballColor = RED;
     }
+    else if(color.blue > 1.5 * color.red)
+    {
+        ballColor = BLUE;
+    }
+    else
+    {
+        ballColor = UNKNOWN;
+    }
+
+    bool badIdea = (ballColor != color_);
+    frc::SmartDashboard::PutBoolean("BadIdea", badIdea);
+
+    return false; //TODO remove
+    return (ballColor != color_);
 }

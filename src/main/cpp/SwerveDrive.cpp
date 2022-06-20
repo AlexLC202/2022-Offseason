@@ -131,8 +131,8 @@ void SwerveDrive::calcOdometry(double turretAngle)
     frc::SmartDashboard::PutNumber("x", x_);
     frc::SmartDashboard::PutNumber("y", y_);
 
-    goalXVel_ = avgX * cos(robotGoalAngle_ * M_PI / 180) + avgY * sin(robotGoalAngle_ * M_PI / 180);
-    goalYVel_ = avgX * -sin(robotGoalAngle_ * M_PI / 180) + avgY * cos(robotGoalAngle_ * M_PI / 180);
+    goalXVel_ = avgX * cos(robotGoalAngle_ * M_PI / 180) + avgY * -sin(robotGoalAngle_ * M_PI / 180);
+    goalYVel_ = avgX * sin(robotGoalAngle_ * M_PI / 180) + avgY * cos(robotGoalAngle_ * M_PI / 180);
 
     /*double goalAngle = (-yaw_ - yawOffset_);
     goalAngle += 360 * 10;
@@ -242,6 +242,7 @@ double SwerveDrive::getGoalXVel() //TODO implement limelight distance if math wo
     frc::SmartDashboard::PutNumber("RGXV", rGoalXVel);
     return rGoalXVel;*/
 
+    frc::SmartDashboard::PutNumber("RGXV", goalXVel_);
     return goalXVel_;
 
 }
@@ -263,5 +264,6 @@ double SwerveDrive::getGoalYVel()
     frc::SmartDashboard::PutNumber("RGYV", rGoalYVel);
     return rGoalYVel;*/
 
+    frc::SmartDashboard::PutNumber("RGYV", goalYVel_);
     return goalYVel_;
 }

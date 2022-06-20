@@ -114,7 +114,7 @@ void Hood::move()
 
 double Hood::calcPID()
 {
-    frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
+    //frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
     //frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 
     double error = setPos_ - hoodMotor_.GetSelectedSensorPosition();

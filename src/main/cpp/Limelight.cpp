@@ -9,13 +9,13 @@ Limelight::Limelight()
 
 double Limelight::getXOff()
 {
-    frc::SmartDashboard::PutNumber("LX", table->GetNumber("tx", 10000.0));
+    //frc::SmartDashboard::PutNumber("LX", table->GetNumber("tx", 10000.0));
     return table->GetNumber("tx", 10000.0);
 }
 
 double Limelight::getYOff()
 {
-    frc::SmartDashboard::PutNumber("LY", table->GetNumber("ty", 10000.0));
+    //frc::SmartDashboard::PutNumber("LY", table->GetNumber("ty", 10000.0));
     return table->GetNumber("ty", 10000.0);
 }
 
@@ -26,7 +26,7 @@ double Limelight::getAdjustedX()
     adjustAngles(x, y);
 
     frc::SmartDashboard::PutNumber("LAX", x);
-    frc::SmartDashboard::PutNumber("LAY", y);
+    //frc::SmartDashboard::PutNumber("LAY", y);
 
     return x;
 }

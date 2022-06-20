@@ -12,6 +12,8 @@ void Controls::periodic()
         climbMode_ = !climbMode_;
         getPneumatic1Toggle();
         getPneumatic2Toggle();
+        autoClimbCancelled();
+        autoClimbPressed();
     }
 }
 
@@ -87,6 +89,11 @@ bool Controls::getPneumatic2Toggle()
 }
 
 bool Controls::autoClimbPressed()
+{
+    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_CANCEL);
+}
+
+bool Controls::autoClimbCancelled()
 {
     return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_BUTTON);
 }

@@ -11,24 +11,45 @@
 class Climb
 {
     public:
-        /*enum pneumaticState
+        enum State
         {
+            IDLE,
             DOWN,
-            HALF_UP,
-            UP
+            AUTO,
+            MANUAL
         };
 
-    pneumaticState getPneumaticState();
-    void setPneumaticState(pneumaticState pneumaticState);*/
+        enum AutoState
+        {
+            UNINITIATED,
+            CLIMB_LOW,
+            EXTEND_TO_MID,
+            CLIMB_MID, 
+            EXTEND_TO_HIGH,
+            CLIMB_HIGH,
+            DONE
+        };
+
+    State getState();
+    void setState(State state);
+
+    AutoState getAutoState();
+    void setAutoState(AutoState autoState);
 
     Climb();
-    void periodic();
+    void periodic(double pitch);
 
     void setPneumatics(bool pneumatic1, bool pneumatic2);
     void togglePneumatic1();
     void togglePneumatic2();
     void extendArms(double power);
     void stop();
+    void autoClimb();
+    bool stageComplete();
+    void readyNextStage();
+
+    bool climbBar();
+    bool raiseToBar();
 
     void setBrake(bool brake);
 
@@ -42,5 +63,11 @@ class Climb
 
         frc::Solenoid brake_;
 
-        //pneumaticState pneumaticState_;
+        State state_;
+        AutoState autoState_;
+
+        double pitch_;
+        bool nextStage_, stageComplete_;
+
+        double kP_ = 0.0001;
 };

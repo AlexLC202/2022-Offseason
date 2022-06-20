@@ -109,6 +109,15 @@ namespace ClimbConstants
     const int PNEUMATIC_1_ID = 3;
     const int PNEUMATIC_2_ID = 2;
     const int BRAKE_ID = 1;
+
+    const double STALL_CURRENT = 60; //TODO get value
+    const double ABOVE_STATIC_HOOKS = 100000; //TODO get values
+    const double CLEAR_OF_BARS = 50000;
+    const double OFF_HOOKS = 10000;
+    const double EXTEND_THRESHOLD = 100;
+
+    const double PITCH_MAX = 30; //TODO yeah these two, also pitch roll idk man
+    const double PITCH_MIN = 0;
 }
 
 namespace ShooterConstants

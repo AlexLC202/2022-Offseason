@@ -125,10 +125,10 @@ void Shooter::periodic(double yaw, SwerveDrive* swerveDrive)
     //swerveDrive->resetGoalOdometry(turret_.getAngle());
     swerveDrive->calcOdometry(turret_.getAngle());
 
-    frc::SmartDashboard::PutBoolean("map", hasMap_);
+    //frc::SmartDashboard::PutBoolean("map", hasMap_);
 
     double hoodAngle, velocity, turretOffset, partDer, distance;
-    frc::SmartDashboard::PutBoolean("found target", swerveDrive->foundGoal());
+    //frc::SmartDashboard::PutBoolean("found target", swerveDrive->foundGoal());
 
     if((distance = limelight_->calcDistance()) != -1)
     {
@@ -317,11 +317,11 @@ double Shooter::calcFlyPID(double velocity)
     //velocityAdjustment_ = frc::SmartDashboard::GetNumber("Velocity Adjustment", 0);
     //frc::SmartDashboard::PutNumber("Velocity Adjustment", velocityAdjustment_);
 
-    double setAngVel = linVelToSensVel(velocity) + velocityAdjustment_; //TODO get value
+    double setAngVel = linVelToSensVel(velocity)/* + velocityAdjustment_*/; //TODO get value
     double error = setAngVel - flywheelMaster_.GetSelectedSensorVelocity();
-    frc::SmartDashboard::PutNumber("FWV", setAngVel);
-    frc::SmartDashboard::PutNumber("FE", error);
-    frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
+    //frc::SmartDashboard::PutNumber("setFV", setAngVel);
+    frc::SmartDashboard::PutNumber("Ferror", error);
+    //frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
 
     integralError_ += error * GeneralConstants::Kdt;
     double deltaError = (error - prevError_) / GeneralConstants::Kdt;

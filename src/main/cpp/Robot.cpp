@@ -105,10 +105,24 @@ void Robot::TeleopPeriodic()
     //TODO implement robot state machine?
     if(!controls_->getClimbMode())
     {
-        climb_.setBrake(true);
-        climb_.setPneumatics(false, false);
-        climb_.stop();
+        //TODO remove, testing
+        double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
+        double fKi = frc::SmartDashboard::GetNumber("fKi", 0.0);
+        double fKd = frc::SmartDashboard::GetNumber("fKd", 0.0);
 
+        double hKp = frc::SmartDashboard::GetNumber("hKp", 0.0);
+        double hKi = frc::SmartDashboard::GetNumber("hKi", 0.0);
+        double hKd = frc::SmartDashboard::GetNumber("hKd", 0.0);
+
+        if(controls_->autoClimbPressed()) //TODO resusing buttons, remove later
+        {
+            shooter_->setPID(fKp, fKi, fKd);
+            shooter_->setHoodPID(hKp, hKi, hKd);
+        }
+
+        climb_.setState(Climb::DOWN);
+        climb_.setAutoState(Climb::UNINITIATED);
+    
         if(controls_->increaseRange())
         {
             shooter_->increaseRange();
@@ -120,15 +134,15 @@ void Robot::TeleopPeriodic()
 
         if (controls_->intakePressed())
         {
-            intake_.setState(Intake::State::INTAKING);
+            intake_.setState(Intake::INTAKING);
         }
         else if (controls_->outakePressed())
         {
-           intake_.setState(Intake::State::OUTAKING);
+           intake_.setState(Intake::OUTAKING);
         }
         else
         {
-            intake_.setState(Intake::State::RETRACTED_IDLE);
+            intake_.setState(Intake::RETRACTED_IDLE);
         }
 
 
@@ -143,46 +157,52 @@ void Robot::TeleopPeriodic()
     }
     else
     {
-        intake_.setState(Intake::State::RETRACTED_IDLE);
-        shooter_->setState(Shooter::State::MANUAL);
+        intake_.setState(Intake::RETRACTED_IDLE);
+        shooter_->setState(Shooter::MANUAL);
         shooter_->setTurretManualVolts(controls_->getTurretManual());
 
-        climb_.setBrake(false);
-
-        if(controls_->getPneumatic1Toggle())
+        if(climb_.getState() == Climb::IDLE || climb_.getState() == Climb::DOWN)
         {
-            climb_.togglePneumatic1();
+            climb_.setState(Climb::MANUAL);
         }
 
-        if(controls_->getPneumatic2Toggle())
+        if(controls_->autoClimbPressed())
         {
-            climb_.togglePneumatic2();
+            climb_.setState(Climb::AUTO);
+            if(climb_.stageComplete())
+            {
+                climb_.readyNextStage();
+            }
+        }
+        else if(controls_->autoClimbCancelled())
+        {
+            climb_.setState(Climb::MANUAL);
+            climb_.setAutoState(Climb::UNINITIATED);
         }
 
-        climb_.extendArms(controls_->getClimbPower());
+        if(climb_.getState() == Climb::MANUAL)
+        {
+            if(controls_->getPneumatic1Toggle())
+            {
+                climb_.togglePneumatic1();
+            }
+
+            if(controls_->getPneumatic2Toggle())
+            {
+                climb_.togglePneumatic2();
+            }
+
+            climb_.extendArms(controls_->getClimbPower());
+        }
         
     }
     
-    //TODO remove, testing
-    double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
-    double fKi = frc::SmartDashboard::GetNumber("fKi", 0.0);
-    double fKd = frc::SmartDashboard::GetNumber("fKd", 0.0);
-
-    double hKp = frc::SmartDashboard::GetNumber("hKp", 0.0);
-    double hKi = frc::SmartDashboard::GetNumber("hKi", 0.0);
-    double hKd = frc::SmartDashboard::GetNumber("hKd", 0.0);
-
-    if(controls_->autoClimbPressed()) //TODO resusing buttons, remove later
-    {
-        shooter_->setPID(fKp, fKi, fKd);
-        shooter_->setHoodPID(hKp, hKi, hKd);
-    }
 
     //frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
     swerveDrive_->periodic(navx_->GetYaw(), controls_);
     shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
     intake_.periodic();
-    climb_.periodic();
+    climb_.periodic(navx_->GetPitch());
     //channel_.periodic();
 }
 

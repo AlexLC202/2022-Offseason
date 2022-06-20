@@ -15,6 +15,7 @@ class Intake
         {
             INTAKING,
             OUTAKING,
+            LOADING,
             RETRACTED_IDLE,
             EXTENDED_IDLE,
         };

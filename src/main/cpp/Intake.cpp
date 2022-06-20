@@ -47,6 +47,11 @@ void Intake::periodic()
             deploy();
             break;
         }
+        case LOADING:
+        {
+            run(true);
+            break;
+        }
         case INTAKING:
         {
             deploy();

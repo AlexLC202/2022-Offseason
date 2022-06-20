@@ -20,6 +20,7 @@ class Controls
         bool getPneumatic1Toggle();
         bool getPneumatic2Toggle();
         bool autoClimbPressed();
+        bool autoClimbCancelled();
 
         bool intakePressed();
         bool outakePressed();

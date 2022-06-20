@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include <frc/smartdashboard/SmartDashboard.h>
 
 class Channel
 {
@@ -8,7 +9,8 @@ class Channel
         enum Color
         {
             BLUE,
-            RED
+            RED,
+            UNKNOWN
         };
         void setColor(Color color);
         Color getColor();
