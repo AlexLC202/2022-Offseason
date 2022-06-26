@@ -10,13 +10,18 @@
 
 void Robot::RobotInit()
 {
-    //m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
-    //m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
-    //frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+    autoChooser_.SetDefaultOption("Taxi Dumb", AutoPaths::TAXI_DUMB);
+    autoChooser_.AddOption("Two Dumb", AutoPaths::TWO_DUMB);
+    autoChooser_.AddOption("Two Right", AutoPaths::TWO_RIGHT);
+    autoChooser_.AddOption("Two Middle", AutoPaths::TWO_MIDDLE);
+    autoChooser_.AddOption("Two Left", AutoPaths::TWO_LEFT);
+    autoChooser_.AddOption("Three", AutoPaths::THREE);
+    autoChooser_.AddOption("Five", AutoPaths::FIVE);
+    frc::SmartDashboard::PutData("Auto Modes", &autoChooser_);
 
-    colorChooser.SetDefaultOption("Red", Channel::Color::RED);
-    colorChooser.SetDefaultOption("Blue", Channel::Color::BLUE);
-    frc::SmartDashboard::PutData("Color", &colorChooser);
+    colorChooser_.SetDefaultOption("Red", Channel::Color::RED);
+    colorChooser_.SetDefaultOption("Blue", Channel::Color::BLUE);
+    frc::SmartDashboard::PutData("Color", &colorChooser_);
 
     controls_->setClimbMode(false);
 
@@ -53,36 +58,46 @@ void Robot::RobotPeriodic() {}
  */
 void Robot::AutonomousInit()
 {
-    //m_autoSelected = m_chooser.GetSelected();
-    // m_autoSelected = SmartDashboard::GetString("Auto Selector",
-    //     kAutoNameDefault);
-    //fmt::print("Auto selected: {}\n", m_autoSelected);
+    climb_.setPneumatics(false, false);
+    limelight_->lightOn(true);
+    navx_->ZeroYaw();
 
-    /*if (m_autoSelected == kAutoNameCustom)
-    {
-        // Custom Auto goes here
-    }
-    else
-    {
-        // Default Auto goes here
-    }*/
+    AutoPaths::Path path = autoChooser_.GetSelected();
+    //m_autoSelected = frc::SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
+    //fmt::print("Auto selected: {}\n", m_autoSelected);
+    autoPaths_.setPath(path);
+    autoPaths_.startTimer();
+
+    yawOffset_ = autoPaths_.initYaw();
+
 }
 
 void Robot::AutonomousPeriodic()
 {
-    /*if (m_autoSelected == kAutoNameCustom)
-    {
-        // Custom Auto goes here
-    }
-    else
-    {
-        // Default Auto goes here
-    }*/
+    limelight_->lightOn(true);
+    shooter_->setColor(colorChooser_.GetSelected());
+
+    autoPaths_.periodic(swerveDrive_);
+
+    intake_.setState(autoPaths_.getIntakeState());
+    shooter_->setState(autoPaths_.getShooterState());
+    
+    double yaw = navx_->GetYaw() - yawOffset_;
+    Helpers::normalizeAngle(yaw);
+
+    //swerveDrive_->periodic(yaw, controls_);
+    swerveDrive_->setYaw(yaw);
+    shooter_->periodic(-yaw);
+    intake_.periodic();
+    climb_.periodic(navx_->GetPitch());
 }
 
 void Robot::TeleopInit()
 {
     controls_->setClimbMode(false);
+    autoPaths_.stopTimer();
+    //odometryLogger->openFile();
+    //hoodLogger->openFile();
     //limelight_->lightOn(true);
     //climb_.setPneumatics(false, false);
 
@@ -90,7 +105,7 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic()
 {
-    channel_->setColor(colorChooser.GetSelected());
+    shooter_->setColor(colorChooser_.GetSelected());
 
     controls_->periodic();
     limelight_->lightOn(true);
@@ -100,13 +115,14 @@ void Robot::TeleopPeriodic()
     {
         //navx_->Reset();
         navx_->ZeroYaw();
+        yawOffset_ = 0;
     }
 
     //TODO implement robot state machine?
     if(!controls_->getClimbMode())
     {
         //TODO remove, testing
-        double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
+        /*double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
         double fKi = frc::SmartDashboard::GetNumber("fKi", 0.0);
         double fKd = frc::SmartDashboard::GetNumber("fKd", 0.0);
 
@@ -118,7 +134,7 @@ void Robot::TeleopPeriodic()
         {
             shooter_->setPID(fKp, fKi, fKd);
             shooter_->setHoodPID(hKp, hKi, hKd);
-        }
+        }*/
 
         climb_.setState(Climb::DOWN);
         climb_.setAutoState(Climb::UNINITIATED);
@@ -168,7 +184,7 @@ void Robot::TeleopPeriodic()
 
         if(controls_->autoClimbPressed())
         {
-            climb_.setState(Climb::AUTO);
+            //climb_.setState(Climb::AUTO);
             if(climb_.stageComplete())
             {
                 climb_.readyNextStage();
@@ -197,13 +213,25 @@ void Robot::TeleopPeriodic()
         
     }
     
+    /*stringstream odometry;
+    odometry << swerveDrive_->getX() << ", " << swerveDrive_->getY() << ", " 
+    << swerveDrive_->getSmoothX() << ", " << swerveDrive_->getSmoothY() << ", " 
+    << swerveDrive_->getSWX() << ", " << swerveDrive_->getSWY();
+    odometryLogger->print(odometry.str());
+
+    stringstream hood;
+    hood << shooter_->getHoodTicks();
+    hoodLogger->print(hood.str());*/
 
     //frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
-    swerveDrive_->periodic(navx_->GetYaw(), controls_);
-    shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
+
+    double yaw = navx_->GetYaw() - yawOffset_;
+    Helpers::normalizeAngle(yaw);
+
+    swerveDrive_->periodic(yaw, controls_);
+    shooter_->periodic(-yaw);
     intake_.periodic();
     climb_.periodic(navx_->GetPitch());
-    //channel_.periodic();
 }
 
 void Robot::DisabledInit()
@@ -213,11 +241,15 @@ void Robot::DisabledInit()
     limelight_->lightOn(false);
 
     shooter_->setState(Shooter::IDLE);
-    shooter_->periodic(-navx_->GetYaw(), swerveDrive_);
+    shooter_->periodic(-navx_->GetYaw());
 
     //navx_->Reset();
     navx_->ZeroYaw();
+    yawOffset_ = 0;
     swerveDrive_->reset();
+
+    //odometryLogger->closeFile();
+    //hoodLogger->closeFile();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything
@@ -228,6 +260,7 @@ void Robot::DisabledPeriodic() //TODO does this even do anything
 
     //navx_->Reset();
     navx_->ZeroYaw();
+    yawOffset_ = 0;
     swerveDrive_->reset();
 }
 

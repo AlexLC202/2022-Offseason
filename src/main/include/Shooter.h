@@ -34,10 +34,12 @@ class Shooter
         void dewindIntegral();
         void increaseRange();
         void decreaseRange();
+        void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
+        double getHoodTicks();
 
-        Shooter(Limelight* limelight, Channel* channel);
-        void periodic(double yaw, SwerveDrive* swerveDrive);
+        Shooter(Limelight* limelight, SwerveDrive* swerveDrive);
+        void periodic(double yaw);
         void createMap();
         void reset();
 
@@ -48,11 +50,12 @@ class Shooter
         
     private:
         Limelight* limelight_;
-        Channel* channel_;
+        SwerveDrive* swerveDrive_;
         WPI_TalonFX flywheelMaster_, flywheelSlave_, kickerMotor_;
 
         Turret turret_;
         Hood hood_;
+        Channel channel_;
         bool hoodZeroing_, flywheelReady_, flywheelEjectReady_, shotReady_, hasShot_;
         bool hasMap_  = false;
         double mapPoints_ = 0;

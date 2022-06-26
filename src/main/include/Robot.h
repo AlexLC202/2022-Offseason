@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <iostream>
 
 #include <frc/TimedRobot.h>
@@ -18,6 +19,8 @@
 #include "Limelight.h"
 #include "Climb.h"
 #include "Channel.h"
+#include "Logger.h"
+#include "AutoPaths.h"
 
 class Robot : public frc::TimedRobot
 {
@@ -34,23 +37,24 @@ public:
     void TestPeriodic() override;
 
 private:
-    //frc::SendableChooser<std::string> m_chooser;
-    //const std::string kAutoNameDefault = "Default";
-    //const std::string kAutoNameCustom = "My Auto";
-    //std::string m_autoSelected;
-
-    frc::SendableChooser<Channel::Color> colorChooser;
+    frc::SendableChooser<AutoPaths::Path> autoChooser_;
+    frc::SendableChooser<Channel::Color> colorChooser_;
 
 
     AHRS *navx_;
     Limelight* limelight_ = new Limelight();
 
     Controls* controls_ = new Controls();
-    Channel* channel_ = new Channel();
     SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
-    Shooter* shooter_ = new Shooter(limelight_, channel_);
+    Shooter* shooter_ = new Shooter(limelight_, swerveDrive_);
     Intake intake_;
     Climb climb_;
-    
+    AutoPaths autoPaths_;
+
+    //TODO test, also make not a pointer
+    Logger* odometryLogger = new Logger(OutputConstants::odometryFile);
+    Logger* hoodLogger = new Logger(OutputConstants::hoodFile);
+
+    double yawOffset_;
 
 };

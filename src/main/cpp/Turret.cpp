@@ -1,22 +1,23 @@
 #include "Turret.h"
 
-Turret::Turret(Limelight* limelight) : turretMotor_(ShooterConstants::TURRET_ID)
+Turret::Turret(Limelight* limelight, SwerveDrive* swerveDrive) : turretMotor_(ShooterConstants::TURRET_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
 {
     turretMotor_.SetNeutralMode(NeutralMode::Coast);
     reset();
     limelight_ = limelight;
+    swerveDrive_ = swerveDrive;
 
     state_ = IDLE;
 }
 
-void Turret::periodic(double yaw, double offset, double robotGoalAng, bool foundGoal, double x, double y)
+void Turret::periodic(double yaw, double offset)
 {
     yaw_ = yaw;
     offset_ = offset;
-    robotGoalAng_ = robotGoalAng;
-    foundGoal_ = foundGoal;
-    x_ = x;
-    y_ = y;
+    //robotGoalAng_ = robotGoalAng;
+    //foundGoal_ = foundGoal;
+    //x_ = x;
+    //y_ = y;
 
     switch(state_)
     {
@@ -91,13 +92,41 @@ void Turret::reset()
 
 void Turret::track()
 {
-    if(!limelight_->hasTarget() && !foundGoal_)
+    if(!limelight_->hasTarget() && !swerveDrive_->foundGoal())
     {
         turretMotor_.SetVoltage(units::volt_t(0));
     }
     else
     {
         double volts = calcPID();
+
+        /*double volts;
+        double error = calcError();
+
+        //double inPos = frc::SmartDashboard::GetNumber("InT", getAngle());
+        //Helpers::normalizeAngle(setPos);
+        //error = inPos - getAngle();
+
+        double pos = getAngle();
+        double setPos = pos + error;
+        double vel = turretMotor_.GetSelectedSensorVelocity() * 10 / ShooterConstants::TICKS_PER_TURRET_DEGREE;
+        if(initTrajectory_)
+        {
+            pos = get<2>(trajectoryCalc_.getProfile());
+            vel = get<1>(trajectoryCalc_.getProfile());
+            trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+
+            volts = trajectoryCalc_.calcPower(pos, vel);
+        }
+        else
+        {
+            initTrajectory_ = true;
+            volts = 0;
+            trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+            volts = trajectoryCalc_.calcPower(pos, vel);
+        }*/
+
+
         //frc::SmartDashboard::PutNumber("T Volts", volts);
         if(volts > 0 && (turretMotor_.GetSelectedSensorPosition() > (180 * ShooterConstants::TICKS_PER_TURRET_DEGREE)))
         {
@@ -121,17 +150,20 @@ void Turret::track()
 void Turret::calcUnloadAng()
 {
     double angToHangar = 0;
-    double xDist = x_ - GeneralConstants::HANGAR_X;
-    double yDist = y_ - GeneralConstants::HANGAR_Y;
+    double x = swerveDrive_->getX();
+    double y = swerveDrive_->getY();
+
+    double xDist = x - GeneralConstants::HANGAR_X;
+    double yDist = y - GeneralConstants::HANGAR_Y;
     if(xDist != 0 || yDist != 0)
     {
         angToHangar = -(atan2(yDist, xDist) * 180 / M_PI) - 90;
     }
 
     double angToGoal = 0;
-    if(x_ != 0 || y_ != 0)
+    if(x != 0 || y != 0)
     {
-        angToGoal = -(atan2(y_, x_) * 180 / M_PI) - 90;
+        angToGoal = -(atan2(y, x) * 180 / M_PI) - 90;
     }
 
     angToHangar += 360 * 10;
@@ -150,7 +182,7 @@ void Turret::calcUnloadAng()
     Helpers::normalizeAngle(unloadAngle_);
 }
 
-double Turret::calcFeedForward()
+double Turret::calcAngularFF()
 {
     double deltaYaw = yaw_ - prevYaw_;
     if(abs(deltaYaw) > 300)
@@ -163,8 +195,20 @@ double Turret::calcFeedForward()
 
     double radPerSec = -(yawVel * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
     
-    double ff = radPerSec / GeneralConstants::Kv;
+    double ff = radPerSec / GeneralConstants::Kv; //TODO tune
     return ff;
+}
+
+double Turret::calcLinearFF()
+{
+    double vel = swerveDrive_->getGoalXVel();
+    double x = swerveDrive_->getX();
+    double y = swerveDrive_->getY();
+    double distance = sqrt(x * x + y * y);
+
+    double radPerSec = (-vel / distance) * 360 * ShooterConstants::TICKS_PER_TURRET_DEGREE / GeneralConstants::TICKS_PER_ROTATION;
+    
+    return radPerSec / GeneralConstants::Kv; //TODO tune
 }
 
 double Turret::calcError()
@@ -180,7 +224,7 @@ double Turret::calcError()
     }
     else
     {
-        double wantedTurretAng = (180 - robotGoalAng_) + offset_;
+        double wantedTurretAng = (180 - swerveDrive_->getRobotGoalAng()) + offset_;
         Helpers::normalizeAngle(wantedTurretAng);
 
         error =  wantedTurretAng - getAngle();
@@ -215,8 +259,11 @@ double Turret::calcPID()
     unloadReady_ = (abs(error) < 10); //TODO get value
 
     double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
-    //calcFeedForward();
-    power += calcFeedForward();
+    power += calcAngularFF();
+    //power += calcLinearFF();
+    frc::SmartDashboard::PutNumber("LTFF", calcLinearFF());
+
+    //TODO, disable voltage limit for ffs... like what?
 
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3); //TODO get cap value
 }

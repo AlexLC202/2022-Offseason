@@ -5,6 +5,8 @@
 #include "frc/Filesystem.h"
 #include "rev/ColorSensorV3.h"
 
+using namespace std;
+
 namespace GeneralConstants
 {
     const double Kdt = 0.02;
@@ -31,6 +33,8 @@ namespace LimelightConstants
     const double ANGLE_OFFSET = 90 - 49.5; //49.5 from 0 at top
     const double HEIGHT_OFFSET = 0.5334;
     const double TURRET_ANGLE_OFFSET = 5.0; //TODO get value more precise
+    const double TURRET_CENTER_RADIUS = 0.3; //TODO get value
+    const double ROBOT_TURRET_CENTER_DISTANCE = 0.2; //TODO get value
 }
 
 namespace InputConstants
@@ -60,6 +64,12 @@ namespace InputConstants
     const int CLIMB_MODE_TOGGLE_BUTTON = 7;
     const int FIELD_ORIENT_BUTTON = 8;
 
+}
+
+namespace OutputConstants
+{
+    const string odometryFile = "odometry.csv";
+    const string hoodFile = "hood.csv";
 }
 
 namespace SwerveConstants
@@ -142,7 +152,7 @@ namespace ShooterConstants
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
-    const std::string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots.csv";
+    const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/andrew_shots.csv";
     const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
 }

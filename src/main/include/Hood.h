@@ -5,6 +5,7 @@
 #include <math.h>
 #include "Controls.h"
 #include "Constants.h"
+#include "TrajectoryCalc.h"
 
 class Hood
 {
@@ -19,6 +20,7 @@ class Hood
         State getState();
         void setState(State state);
         void setPID(double p, double i, double d);
+        double getHoodTicks();
 
         bool isReady();
 
@@ -36,6 +38,16 @@ class Hood
 
     private:
         WPI_TalonFX hoodMotor_;
+
+        double maxV = 0;
+        double maxA = 0;
+        double kP = 0;
+        double kD = 0;
+        double kV = 0;
+        double kA = 0;
+        TrajectoryCalc trajectoryCalc_;
+        bool initTrajectory_;
+        double setTrajectoryPos_;
 
         State state_;
         bool zeroed_;

@@ -1,6 +1,6 @@
 #include "Hood.h"
 
-Hood::Hood() : hoodMotor_(ShooterConstants::HOOD_ID)
+Hood::Hood() : hoodMotor_(ShooterConstants::HOOD_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
 {
     hoodMotor_.SetNeutralMode(NeutralMode::Coast);
     reset();
@@ -27,6 +27,11 @@ void Hood::setPID(double p, double i, double d)
     kP_ = p;
     kI_ = i;
     kD_ = d;
+}
+
+double Hood::getHoodTicks()
+{
+    return hoodMotor_.GetSelectedSensorPosition();
 }
 
 bool Hood::isReady()
@@ -91,15 +96,50 @@ void Hood::zero()
 
 void Hood::setWantedPos(double setPos)
 {
-    setPos_ = angleToTicks(setPos);
+    setPos_ = setPos;
+    //setPos_ = angleToTicks(setPos);
 }
 
 void Hood::move()
 {
     double volts = calcPID();
+
+    /*double volts;
+    if(abs(setPos_ - setTrajectoryPos_) > 5 && initTrajectory_) //TODO get value
+    {
+        setTrajectoryPos_ = setPos_;
+        double pos = get<2>(trajectoryCalc_.getProfile());
+        double vel = get<1>(trajectoryCalc_.getProfile());
+
+        trajectoryCalc_.generateTrajectory(pos, setPos_, vel);
+    }
+    else if(!initTrajectory_)
+    {
+        initTrajectory_ = true;
+        setTrajectoryPos_ = setPos_;
+
+        double pos = hoodMotor_.GetSelectedSensorPosition();
+        double vel = hoodMotor_.GetSelectedSensorVelocity() * 10;
+
+        trajectoryCalc_.generateTrajectory(pos, setPos_, vel);
+    }
+
+    if(initTrajectory_)
+    {
+        double pos = hoodMotor_.GetSelectedSensorPosition();
+        double vel = hoodMotor_.GetSelectedSensorVelocity() * 10;
+        volts = trajectoryCalc_.calcPower(pos, vel) + ShooterConstants::HOOD_FF;
+    }
+    else
+    {
+        volts = 0;
+    }*/
+
+    //volts = -12;
+
     if(hoodMotor_.GetSelectedSensorPosition() < ShooterConstants::MAX_HOOD_TICKS && volts < 0)
     {
-        hoodMotor_.SetVoltage(units::volt_t(0));
+        //hoodMotor_.SetVoltage(units::volt_t(0));
     }
     else if(hoodMotor_.GetSelectedSensorPosition() > 0 && volts > 0)
     {

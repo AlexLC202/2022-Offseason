@@ -15,6 +15,7 @@ class SwerveDrive
 {
     public:
         SwerveDrive(Limelight* limelight);
+        void setYaw(double yaw);
         
         void periodic(double yaw, Controls* controls);
         void drive(double xSpeed, double ySpeed, double turn);
@@ -29,6 +30,10 @@ class SwerveDrive
 
         double getX();
         double getY();
+        double getSmoothX();
+        double getSmoothY();
+        double getSWX();
+        double getSWY();
         //double getGoalX();
         //double getGoalY();
         double getGoalXVel();
@@ -41,6 +46,7 @@ class SwerveDrive
         SwerveModule* bottomLeft_ = new SwerveModule(SwerveConstants::BL_TURN_ID, SwerveConstants::BL_DRIVE_ID, SwerveConstants::BL_CANCODER_ID, SwerveConstants::BL_CANCODER_OFFSET);
 
         double x_, y_, yaw_, /*goalX_, goalY_, yawOffset_,*/ goalXVel_, goalYVel_, robotGoalAngle_;
+        double smoothX_, smoothY_, smoothWheelX_, smoothWheelY_;
         bool foundGoal_ = false;
 
         Limelight* limelight_;

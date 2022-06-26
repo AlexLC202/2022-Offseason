@@ -8,6 +8,7 @@
 #include "Controls.h"
 #include "Constants.h"
 #include "Helpers.h"
+#include "TrajectoryCalc.h"
 
 //#include <frc/MotorSafety.h>
 //#include <frc/smartdashboard/SmartDashboard.h>
@@ -23,7 +24,7 @@ class SwerveModule
 
         double calcAngPID(double setAngle);
         double calcDrivePID(double driveSpeed);
-        double findError(double setAngle);
+        double findError(double setAngle, double angle);
 
         
         double getDriveVelocity();
@@ -37,6 +38,16 @@ class SwerveModule
         WPI_TalonFX driveMotor_;
         WPI_CANCoder cancoder_;
 
+        double maxV = 0;
+        double maxA = 0;
+        double kP = 0;
+        double kD = 0;
+        double kV = 0;
+        double kA = 0;
+        TrajectoryCalc trajectoryCalc_;
+        bool initTrajectory_;
+        double posOffset_, setTrajectoryPos_;
+        
         std::string id_;
         double offset_;
         int direction_ = 1;

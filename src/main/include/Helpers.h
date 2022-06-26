@@ -2,5 +2,5 @@
 
 namespace Helpers
 {
-    double normalizeAngle(double& angle);
+    void normalizeAngle(double& angle);
 }

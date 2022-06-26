@@ -5,9 +5,14 @@ SwerveDrive::SwerveDrive(Limelight* limelight)
     limelight_ = limelight;
 }
 
-void SwerveDrive::periodic(double yaw, Controls* controls)
+void SwerveDrive::setYaw(double yaw)
 {
     yaw_ = yaw;
+}
+
+void SwerveDrive::periodic(double yaw, Controls* controls)
+{
+    setYaw(yaw);
     drive(controls->getXStrafe(), controls->getYStrafe(), controls->getTurn());
 }
 
@@ -98,23 +103,64 @@ void SwerveDrive::calcOdometry(double turretAngle)
     double avgX = (frX + flX + brX + blX) / 4;
     double avgY = (frY + flY + brY + blY) / 4;
 
-    if(limelight_->hasTarget())
-    {
-        foundGoal_ = true;
+    double angle = yaw_ * M_PI / 180;
+    
+    double rotatedX = avgX * cos(angle) + avgY * -sin(angle);
+    double rotatedY = avgX * sin(angle) + avgY * cos(angle);
 
+    if(limelight_->hasTarget())
+    {   
         double distance = limelight_->calcDistance() + 0.6096; //Origin at goal center
         robotGoalAngle_ = (180 - (turretAngle + limelight_->getAdjustedX() + LimelightConstants::TURRET_ANGLE_OFFSET));
         double angleToGoal = yaw_ + robotGoalAngle_ + 90;
         x_ = -distance * cos(angleToGoal * M_PI / 180);
         y_ = -distance * sin(angleToGoal * M_PI / 180);
+
+        double turretLimelightAngle = turretAngle - 180;
+        Helpers::normalizeAngle(turretLimelightAngle);
+        turretLimelightAngle = turretLimelightAngle * M_PI / 180;
+        double turretLimelightX = LimelightConstants::TURRET_CENTER_RADIUS * sin(turretLimelightAngle);
+        double turretLimelightY = LimelightConstants::TURRET_CENTER_RADIUS * cos(turretLimelightAngle);
+
+        turretLimelightY -= LimelightConstants::ROBOT_TURRET_CENTER_DISTANCE;
+
+        double robotLimelightX = turretLimelightX * cos(angle) - turretLimelightY * sin(angle);
+        double robotLimelightY = turretLimelightX * sin(angle) + turretLimelightY * cos(angle);
+
+        x_ -= robotLimelightX;
+        y_ -= robotLimelightY;
+
+        if(!foundGoal_)
+        {
+            foundGoal_ = true;
+            smoothX_ = x_;
+            smoothY_ = y_;
+            smoothWheelX_ = x_;
+            smoothWheelY_ = y_;
+        }
+
+        //TODO average with wheel velocity?
+        double transWX = ((x_ - smoothX_) + (rotatedX * GeneralConstants::Kdt)) / 2;
+        double transWY = ((y_ - smoothY_) + (rotatedY * GeneralConstants::Kdt)) / 2;
+
+        double transX = x_ - smoothX_;
+        double transY = y_ - smoothY_;
+
+        smoothWheelX_ *= 0.95;
+        smoothWheelX_ += 0.05 * transWX;
+
+        smoothWheelY_ *= 0.95;
+        smoothWheelY_ += 0.05 * transWY;
+
+        smoothX_ *= 0.95;
+        smoothX_ += 0.05 * transX;
+
+        smoothY_ *= 0.95;
+        smoothY_ += 0.05 * transY;
+
     }
     else
     {
-        double angle = yaw_ * M_PI / 180;
-    
-        double rotatedX = avgX * cos(angle) + avgY * -sin(angle);
-        double rotatedY = avgX * sin(angle) + avgY * cos(angle);
-
         x_ += rotatedX * GeneralConstants::Kdt;
         y_ += rotatedY * GeneralConstants::Kdt;
 
@@ -213,6 +259,26 @@ double SwerveDrive::getX()
 double SwerveDrive::getY()
 {
     return y_;
+}
+
+double SwerveDrive::getSmoothX()
+{
+    return smoothX_;
+}
+
+double SwerveDrive::getSmoothY()
+{
+    return smoothY_;
+}
+
+double SwerveDrive::getSWX()
+{
+    return smoothWheelX_;
+}
+
+double SwerveDrive::getSWY()
+{
+    return smoothWheelY_;
 }
 
 /*double SwerveDrive::getGoalX()

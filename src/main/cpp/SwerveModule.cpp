@@ -1,6 +1,6 @@
 #include "SwerveModule.h"
 
-SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offset) : turnMotor_(turnID, "Drivebase"), driveMotor_(driveID, "Drivebase"), cancoder_(cancoderID, "Drivebase"), offset_(offset)
+SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offset) : turnMotor_(turnID, "Drivebase"), driveMotor_(driveID, "Drivebase"), cancoder_(cancoderID, "Drivebase"), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA), offset_(offset)
 {
     turnMotor_.SetInverted(TalonFXInvertType::CounterClockwise);
     driveMotor_.SetInverted(TalonFXInvertType::Clockwise);
@@ -10,6 +10,7 @@ SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offse
 
     id_ = std::to_string(driveID);
 
+    initTrajectory_ = false;
     cancoder_.ClearStickyFaults();//TODO check what this actually does
 }
 
@@ -22,6 +23,40 @@ void SwerveModule::move(double driveSpeed, double angle)
 {
     //frc::SmartDashboard::PutNumber(id_ + " Wanted speed", driveSpeed);
     //frc::SmartDashboard::PutNumber(id_ + " Wanted angle", angle);
+
+    /*if(abs(setTrajectoryPos_ - angle) > 0.75 && initTrajectory_) //TODO get value
+    {
+        setTrajectoryPos_ = angle;
+
+        double pos = get<2>(trajectoryCalc_.getProfile()) + posOffset_;
+        posOffset_ = pos;
+        double error = findError(angle, pos);
+
+        double vel = get<1>(trajectoryCalc_.getProfile());
+        
+
+        trajectoryCalc_.generateTrajectory(0, error, vel);
+    }
+    else if(!initTrajectory_)
+    {
+        initTrajectory_ = true;
+        setTrajectoryPos_ = angle;
+        posOffset_ = getAngle();
+
+        double error = findError(angle, getAngle());
+
+        trajectoryCalc_.generateTrajectory(0, error, cancoder_.GetVelocity());
+    }
+    
+    if(initTrajectory_)
+    {
+        double pos = getAngle() - posOffset_;
+        Helpers::normalizeAngle(pos);
+        double vel = cancoder_.GetVelocity();
+
+        units::volt_t swivelVols(trajectoryCalc_.calcPower(pos, vel));
+        turnMotor_.SetVoltage(swivelVols);
+    }*/
 
     units::volt_t turnVolts{calcAngPID(angle)};
     turnMotor_.SetVoltage(turnVolts);
@@ -38,7 +73,7 @@ void SwerveModule::move(double driveSpeed, double angle)
 double SwerveModule::calcAngPID(double setAngle)
 {
 
-    double error = findError(setAngle);
+    double error = findError(setAngle, getAngle());
     //frc::SmartDashboard::PutNumber(id_ + "Angle error", error);
 
     aIntegralError_ += error * GeneralConstants::Kdt;
@@ -104,9 +139,9 @@ double SwerveModule::calcDrivePID(double driveSpeed)
 
 }
 
-double SwerveModule::findError(double setAngle)
+double SwerveModule::findError(double setAngle, double angle)
 {
-    double rawError = setAngle - getAngle();
+    double rawError = setAngle - angle;
 
     //frc::SmartDashboard::PutNumber(id_ + "Angle", getAngle());
 
