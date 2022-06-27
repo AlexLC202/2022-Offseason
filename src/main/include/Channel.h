@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include <iostream>
 #include <frc/smartdashboard/SmartDashboard.h>
 
 class Channel
@@ -22,7 +23,10 @@ class Channel
         bool badIdea();
 
     private:
-        rev::ColorSensorV3 colorSensor_;
+
+        static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
+        rev::ColorSensorV3 colorSensor_{i2cPort};
+        //rev::ColorSensorV3 colorSensor_;
 
         Color color_;
 };

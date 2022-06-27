@@ -52,6 +52,7 @@ void Climb::periodic(double pitch)
         }
         case AUTO:
         {
+            autoClimb();
             setBrake(false);
             break;
         }
@@ -81,7 +82,8 @@ void Climb::togglePneumatic2()
 
 void Climb::extendArms(double power)
 {
-    //frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
+    frc::SmartDashboard::PutNumber("CP", gearboxMaster_.GetSelectedSensorPosition());
+    frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     gearboxMaster_.SetVoltage(units::volt_t(power)); //TODO check if slave motor spins as well
 }
 
@@ -215,13 +217,13 @@ bool Climb::climbBar()
         return true;
     }
 
-    if(autoState_ == CLIMB_HIGH && gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::OFF_HOOKS)
+    if(autoState_ == CLIMB_HIGH && gearboxMaster_.GetSelectedSensorPosition() < ClimbConstants::CLEAR_OF_BARS)
     {
         gearboxMaster_.SetVoltage(units::volt_t(0));
         return true;
     }
 
-    gearboxMaster_.SetVoltage(units::volt_t(6)); //TODO get direction
+    gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::CLIMB_VOLTAGE)); //TODO get direction
     return false;
 }
 
@@ -230,11 +232,11 @@ bool Climb::raiseToBar()
     double pos = gearboxMaster_.GetSelectedSensorPosition();
     if(pos > ClimbConstants::ABOVE_STATIC_HOOKS)
     {
-        gearboxMaster_.SetVoltage(units::volt_t(-0.5)); //TODO get direction and speed
+        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_RAISE_VOLTAGE)); //TODO get direction and speed
     }
     else if(pos <= ClimbConstants::ABOVE_STATIC_HOOKS && pos > ClimbConstants::CLEAR_OF_BARS)
     {
-        gearboxMaster_.SetVoltage(units::volt_t(-6));
+        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::RAISE_VOLTAGE));
     }
     else if(pos <= ClimbConstants::CLEAR_OF_BARS)
     {
@@ -244,7 +246,7 @@ bool Climb::raiseToBar()
 
     if(autoState_ == EXTEND_TO_MID)
     {
-        if(pos > 0 && pos < ClimbConstants::EXTEND_THRESHOLD)
+        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD)
         {
             setPneumatics(true, true);
             return true;
@@ -257,7 +259,7 @@ bool Climb::raiseToBar()
     }
     else if(autoState_ == EXTEND_TO_HIGH)
     {
-        if(pos > 0 && pos < ClimbConstants::EXTEND_THRESHOLD && pitch_ > ClimbConstants::PITCH_MIN && pitch_ < ClimbConstants::PITCH_MAX)
+        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD && pitch_ > ClimbConstants::PITCH_MIN && pitch_ < ClimbConstants::PITCH_MAX)
         {
             setPneumatics(true, false);
             return true;

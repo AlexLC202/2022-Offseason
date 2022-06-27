@@ -13,46 +13,125 @@ void TrajectoryCalc::generateTrajectory(double pos, double setPos, double vel)
     setPos_ = setPos;
     initPos_ = pos;
     initVel_ = vel;
+
     double error = setPos - pos;
     //prevAbsoluteError_ = error;
-    if(error != 0)
+
+    if(error > 0)
     {
-        direction_ = error / abs(error);
+        direction_ = 1;
+    }
+    else if(error < 0)
+    {
+        direction_ = -1;
     }
     else
     {
-        direction_ = -vel / abs(vel);
+        direction_ = 0;
+    }
+
+    int initVelDistDirection;
+    if (vel > 0)
+    {
+        initVelDistDirection = 1;
+    }
+    else if (vel < 0)
+    {
+        initVelDistDirection = -1;
+    }
+    else
+    {
+        initVelDistDirection = 0;
     }
     
-    double initVelTime = vel / MAX_A;
-    double initVelDistance = initVelTime * vel / 2;
+    double initVelTime = abs(vel / MAX_A);
+    double initVelDistance = (initVelTime * vel) / 2;
 
-    double distanceToAccel = abs(error) + abs(initVelDistance);
-    distanceToAccel /= 2;
-
-    cruiseSpeed_ = sqrt(2 * MAX_A * distanceToAccel);
-
-    //cruiseSpeed_ = clamp(cruiseSpeed_, 0.0, MAX_V);
-    if(cruiseSpeed_ > MAX_V)
+    if(error == 0 && vel == 0)
     {
-        cruiseSpeed_ = MAX_V;
+        accelDist_ = 0;
+        accelTime_ = 0;
+        cruiseSpeed_ = 0;
+        cruiseDist_ = 0;
+        cruiseTime_ = 0;
+        deccelDist_ = 0;
+        deccelTime_ = 0;
     }
-
-    accelDist_ = direction_ * ((cruiseSpeed_ * cruiseSpeed_) - (vel * vel)) / (2 * MAX_A);
-    accelTime_ = abs((cruiseSpeed_ * direction_ - vel) / MAX_A);
-
-    deccelDist_ = direction_ * (cruiseSpeed_ * cruiseSpeed_) / (2 * MAX_A);
-    deccelTime_ = cruiseSpeed_ / MAX_A;
-
-    if(cruiseSpeed_ != 0)
+    else if(error == initVelDistance)
     {
-        cruiseTime_ = abs((error - accelDist_ - deccelDist_) / cruiseSpeed_);
+        accelDist_ = 0;
+        accelTime_ = 0;
+        cruiseSpeed_ = vel;
+        cruiseDist_ = 0;
+        cruiseTime_ = 0;
+        deccelDist_ = error;
+        deccelTime_ = initVelTime;
+    }
+    else if((error == 0 && vel != 0) || (abs(initVelDistance) > abs(error) && direction_ == initVelDistDirection) )
+    {
+        //problem child
+        double newError = error - initVelDistance;
+
+        double distanceToAccel = newError / 2;
+
+        if (newError > 0)
+        {
+            direction_ = 1;
+        }
+        else if (newError < 0)
+        {
+            direction_ = -1;
+        }
+
+        cruiseSpeed_ = sqrt(2 * MAX_A * abs(distanceToAccel));
+
+        //cruiseSpeed_ = clamp(cruiseSpeed_, 0.0, MAX_V);
+        if (cruiseSpeed_ > MAX_V)
+        {
+            cruiseSpeed_ = MAX_V;
+        }
+        cruiseSpeed_ *= direction_;
+
+        accelDist_ = initVelDistance + distanceToAccel;
+        accelTime_ = (cruiseSpeed_ - vel) / MAX_A * direction_;
+
+        deccelDist_ = distanceToAccel;
+        deccelTime_ = cruiseSpeed_ / MAX_A * direction_;
+
+        cruiseDist_ = 0;
+        cruiseTime_ = 0;
     }
     else
     {
-        cruiseTime_ = 0;
+        double distanceToAccel = abs(error) + abs(initVelDistance);
+        distanceToAccel /= 2;
+
+        cruiseSpeed_ = sqrt(2 * MAX_A * distanceToAccel);
+
+        //cruiseSpeed_ = clamp(cruiseSpeed_, 0.0, MAX_V);
+        if (cruiseSpeed_ > MAX_V)
+        {
+            cruiseSpeed_ = MAX_V;
+        }
+        cruiseSpeed_ *= direction_;
+
+        accelDist_ = ((cruiseSpeed_ * cruiseSpeed_) - (vel * vel)) / (2 * MAX_A * direction_);
+        accelTime_ = (cruiseSpeed_ - vel) / MAX_A * direction_;
+
+        deccelDist_ = (cruiseSpeed_ * cruiseSpeed_) / (2 * MAX_A * direction_);
+        deccelTime_ = cruiseSpeed_ / MAX_A * direction_;
+
+        cruiseDist_ = error - accelDist_ - deccelDist_;
+        if(cruiseSpeed_ != 0)
+        {
+            cruiseTime_ = cruiseDist_ / cruiseSpeed_;
+        }
+        else
+        {
+            cruiseTime_ = 0;
+        }
+        
     }
-    cruiseDist_ = cruiseTime_ * cruiseSpeed_ * direction_;
 
 }
 
@@ -76,15 +155,14 @@ tuple<double, double, double> TrajectoryCalc::getProfile()
     else if (time > accelTime_ && time <= cruiseTime_ + accelTime_)
     {
         tA = 0;
-        tV = cruiseSpeed_ * direction_;
-        tP = accelDist_ + cruiseSpeed_ * direction_ * (time - accelTime_) + initPos_;
+        tV = cruiseSpeed_;
+        tP = accelDist_ + cruiseSpeed_ * (time - accelTime_) + initPos_;
     }
     else if (time > cruiseTime_ + accelTime_ && time < deccelTime_ + accelTime_ + cruiseTime_)
     {
         tA = MAX_A * -direction_;
-        tV = cruiseSpeed_ * direction_ - (time - accelTime_ - cruiseTime_) * MAX_A * direction_;
-        tP = accelDist_ + cruiseDist_ + (time - accelTime_ - cruiseTime_) * (cruiseSpeed_ * direction_+ tV) / 2 + initPos_;
-        //cout << cruiseSpeed_ << ", " << cruiseTime_ << ", " << tV << ", " << (time - accelTime_ - cruiseTime_) << endl;
+        tV = cruiseSpeed_ - (time - accelTime_ - cruiseTime_) * MAX_A * direction_;
+        tP = accelDist_ + cruiseDist_ + (time - accelTime_ - cruiseTime_) * (cruiseSpeed_ + tV) / 2 + initPos_;
     }
     else if (time > accelTime_ + deccelTime_ + cruiseTime_)
     {
@@ -98,7 +176,8 @@ tuple<double, double, double> TrajectoryCalc::getProfile()
         tV = 0;
         tP = 0;
     }
-    return tuple<double, double, double> (tA, tV, tP);
+
+    return tuple<double, double, double>(tA, tV, tP);
 
 }
 

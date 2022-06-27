@@ -96,10 +96,16 @@ void Robot::TeleopInit()
 {
     controls_->setClimbMode(false);
     autoPaths_.stopTimer();
-    //odometryLogger->openFile();
+    odometryLogger->openFile();
     //hoodLogger->openFile();
+    //turretLogger->openFile();
+
     //limelight_->lightOn(true);
     //climb_.setPneumatics(false, false);
+
+    frc::SmartDashboard::PutNumber("InV", 0);
+    frc::SmartDashboard::PutNumber("InA", 0);
+    frc::SmartDashboard::PutNumber("fKp", 0);
 
 }
 
@@ -122,7 +128,7 @@ void Robot::TeleopPeriodic()
     if(!controls_->getClimbMode())
     {
         //TODO remove, testing
-        /*double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
+        double fKp = frc::SmartDashboard::GetNumber("fKp", 0.0);
         double fKi = frc::SmartDashboard::GetNumber("fKi", 0.0);
         double fKd = frc::SmartDashboard::GetNumber("fKd", 0.0);
 
@@ -132,9 +138,10 @@ void Robot::TeleopPeriodic()
 
         if(controls_->autoClimbPressed()) //TODO resusing buttons, remove later
         {
+            cout << "t" << endl;
             shooter_->setPID(fKp, fKi, fKd);
             shooter_->setHoodPID(hKp, hKi, hKd);
-        }*/
+        }
 
         climb_.setState(Climb::DOWN);
         climb_.setAutoState(Climb::UNINITIATED);
@@ -151,7 +158,7 @@ void Robot::TeleopPeriodic()
         if (controls_->intakePressed())
         {
             intake_.setState(Intake::INTAKING);
-        }
+    }
         else if (controls_->outakePressed())
         {
            intake_.setState(Intake::OUTAKING);
@@ -165,6 +172,7 @@ void Robot::TeleopPeriodic()
         if(controls_->shootPressed())
         {
             shooter_->setState(Shooter::REVING);
+            intake_.setState(Intake::LOADING);
         }
         else
         {
@@ -184,7 +192,7 @@ void Robot::TeleopPeriodic()
 
         if(controls_->autoClimbPressed())
         {
-            //climb_.setState(Climb::AUTO);
+            climb_.setState(Climb::AUTO);
             if(climb_.stageComplete())
             {
                 climb_.readyNextStage();
@@ -213,15 +221,19 @@ void Robot::TeleopPeriodic()
         
     }
     
-    /*stringstream odometry;
+    stringstream odometry;
     odometry << swerveDrive_->getX() << ", " << swerveDrive_->getY() << ", " 
     << swerveDrive_->getSmoothX() << ", " << swerveDrive_->getSmoothY() << ", " 
     << swerveDrive_->getSWX() << ", " << swerveDrive_->getSWY();
     odometryLogger->print(odometry.str());
 
-    stringstream hood;
+    /*stringstream hood;
     hood << shooter_->getHoodTicks();
-    hoodLogger->print(hood.str());*/
+    hoodLogger->print(hood.str());
+
+    stringstream turret;
+    turret << shooter_->getTurretAngle();
+    turretLogger->print(turret.str());*/
 
     //frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
 
@@ -248,8 +260,9 @@ void Robot::DisabledInit()
     yawOffset_ = 0;
     swerveDrive_->reset();
 
-    //odometryLogger->closeFile();
+    odometryLogger->closeFile();
     //hoodLogger->closeFile();
+    //turretLogger->closeFile();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything

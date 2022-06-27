@@ -155,7 +155,7 @@ void Hood::move()
 double Hood::calcPID()
 {
     //frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
-    //frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
+    frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 
     double error = setPos_ - hoodMotor_.GetSelectedSensorPosition();
 
@@ -168,13 +168,13 @@ double Hood::calcPID()
     } 
     prevError_ = error;
 
-    atPos_ = (abs(error) < 100.0 && abs(deltaError) < 200); //TODO get value, change back to 50
+    atPos_ = (abs(error) < 100.0); //TODO get value, change back to 50
 
     double power = (kP_*error) + (kI_*integralError_) + (kD_*deltaError);
     power += ShooterConstants::HOOD_FF;
 
     frc::SmartDashboard::PutNumber("HE", error);
-    //frc::SmartDashboard::PutNumber("HP", power);
+    frc::SmartDashboard::PutNumber("HP", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);
 }
 

@@ -54,6 +54,7 @@ private:
     //TODO test, also make not a pointer
     Logger* odometryLogger = new Logger(OutputConstants::odometryFile);
     Logger* hoodLogger = new Logger(OutputConstants::hoodFile);
+    Logger* turretLogger = new Logger(OutputConstants::turretFile);
 
     double yawOffset_;
 

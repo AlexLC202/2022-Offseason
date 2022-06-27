@@ -90,12 +90,12 @@ bool Controls::getPneumatic2Toggle()
 
 bool Controls::autoClimbPressed()
 {
-    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_CANCEL);
+    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_BUTTON);
 }
 
 bool Controls::autoClimbCancelled()
 {
-    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_BUTTON);
+    return xbox_.GetRawButtonPressed(InputConstants::AUTO_CLIMB_CANCEL);
 }
 
 bool Controls::intakePressed()

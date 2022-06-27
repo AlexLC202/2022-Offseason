@@ -37,6 +37,7 @@ class Shooter
         void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
         double getHoodTicks();
+        double getTurretAngle();
 
         Shooter(Limelight* limelight, SwerveDrive* swerveDrive);
         void periodic(double yaw);
@@ -60,15 +61,15 @@ class Shooter
         bool hasMap_  = false;
         double mapPoints_ = 0;
         double rangeAdjustment_ = 0;
-        double velocityAdjustment_ = 2800;
 
         State state_;
 
         double setPos_, prevError_, integralError_;
-        double fKp_ = 0.0001; //TODO tune values
+        double fKp_ = 0.0005; //TODO tune values
         double fKi_ = 0.00; 
         double fKd_ = 0.0000; 
         //0.0000001, 0.001, 0.00001
+        //0.0001
 
         double yaw_;
 

@@ -140,7 +140,7 @@ void Turret::track()
         }
         else
         {
-            //turretMotor_.SetVoltage(units::volt_t(volts));
+            turretMotor_.SetVoltage(units::volt_t(volts));
         }
         
     }
@@ -230,7 +230,7 @@ double Turret::calcError()
         error =  wantedTurretAng - getAngle();
     }
 
-    frc::SmartDashboard::PutNumber("TA", getAngle());
+    //frc::SmartDashboard::PutNumber("TA", getAngle());
     frc::SmartDashboard::PutNumber("Terror", error);
 
     if(abs(error + getAngle()) > 180)
@@ -255,12 +255,13 @@ double Turret::calcPID()
     } 
     prevError_ = error;
 
-    aimed_ = (abs(error) < 3 && abs(deltaError) < 1); //TODO get value, change back to 2.5
+    aimed_ = (abs(error) < 3); //TODO get value, change back to 2.5
     unloadReady_ = (abs(error) < 10); //TODO get value
 
     double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
+    //power = 0;
     power += calcAngularFF();
-    //power += calcLinearFF();
+    power += calcLinearFF();
     frc::SmartDashboard::PutNumber("LTFF", calcLinearFF());
 
     //TODO, disable voltage limit for ffs... like what?

@@ -23,7 +23,7 @@ namespace GeneralConstants
 
     const double GOAL_HEIGHT = 2.641;
 
-    const double HANGAR_X = -4; //TODO get values
+    const double HANGAR_X = -4; //-4, -8
     const double HANGAR_Y = -8;
 
 }
@@ -53,7 +53,7 @@ namespace InputConstants
     const int XBOX_RJOY_X = 4;
     const int XBOX_RJOY_Y = 5;
 
-    const int OUTAKE_BUTTON = 5; //TODO get value
+    const int OUTAKE_BUTTON = 3; //TODO get value
     
     const int AUTO_CLIMB_BUTTON = 1;
     const int AUTO_CLIMB_CANCEL = 2;
@@ -70,6 +70,7 @@ namespace OutputConstants
 {
     const string odometryFile = "odometry.csv";
     const string hoodFile = "hood.csv";
+    const string turretFile = "turret.csv";
 }
 
 namespace SwerveConstants
@@ -120,14 +121,21 @@ namespace ClimbConstants
     const int PNEUMATIC_2_ID = 2;
     const int BRAKE_ID = 1;
 
-    const double STALL_CURRENT = 60; //TODO get value
-    const double ABOVE_STATIC_HOOKS = 100000; //TODO get values
-    const double CLEAR_OF_BARS = 50000;
-    const double OFF_HOOKS = 10000;
-    const double EXTEND_THRESHOLD = 100;
+    const double STALL_CURRENT = 60; //TODO get value better?
+    const double ABOVE_STATIC_HOOKS = 112000; //TODO get values
+    const double CLEAR_OF_BARS = 70850;
+    const double OFF_HOOKS = -110500;
+    const double EXTEND_THRESHOLD = 5000; //TODO experiment for value
+    //-121500
+    //18000
+    //141700
+
+    const double RAISE_VOLTAGE = -6;
+    const double CLIMB_VOLTAGE = 6;
+    const double SLOW_RAISE_VOLTAGE = -1; //TODO make sure to lower on bar
 
     const double PITCH_MAX = 30; //TODO yeah these two, also pitch roll idk man
-    const double PITCH_MIN = 0;
+    const double PITCH_MIN = -30;
 }
 
 namespace ShooterConstants
@@ -149,10 +157,12 @@ namespace ShooterConstants
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
     const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
 
+    const double FLYWHEEL_FF = 1600;
+
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
-    const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/andrew_shots.csv";
+    const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/ashots.csv";
     const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
 }
