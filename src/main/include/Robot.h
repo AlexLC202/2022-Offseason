@@ -25,6 +25,7 @@
 class Robot : public frc::TimedRobot
 {
 public:
+    Robot();
     void RobotInit() override;
     void RobotPeriodic() override;
     void AutonomousInit() override;
@@ -47,14 +48,18 @@ private:
     Controls* controls_ = new Controls();
     SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
     Shooter* shooter_ = new Shooter(limelight_, swerveDrive_);
+    Channel channel_;
     Intake intake_;
     Climb climb_;
     AutoPaths autoPaths_;
 
     //TODO test, also make not a pointer
-    Logger* odometryLogger = new Logger(OutputConstants::odometryFile);
-    Logger* hoodLogger = new Logger(OutputConstants::hoodFile);
-    Logger* turretLogger = new Logger(OutputConstants::turretFile);
+    Logger* odometryLogger_ = new Logger(OutputConstants::odometryFile);
+    Logger* flywheelLogger_ = new Logger(OutputConstants::flywheelFile);
+    Logger* hoodLogger_ = new Logger(OutputConstants::hoodFile);
+    Logger* turretLogger_ = new Logger(OutputConstants::turretFile);
+
+    frc::Timer timer;
 
     double yawOffset_;
 

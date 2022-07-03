@@ -84,6 +84,10 @@ void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 
 void SwerveDrive::calcOdometry(double turretAngle)
 {
+    double time = timer_.GetFPGATimestamp().value();
+    dT_ = time - prevTime_;
+    prevTime_ = time;
+    
     //resetGoalOdometry(turretAngle); //TODO change into this function if it works?
 
     if(!limelight_->hasTarget() && !foundGoal_)
@@ -140,8 +144,8 @@ void SwerveDrive::calcOdometry(double turretAngle)
         }
 
         //TODO average with wheel velocity?
-        double transWX = ((x_ - smoothX_) + (rotatedX * GeneralConstants::Kdt)) / 2;
-        double transWY = ((y_ - smoothY_) + (rotatedY * GeneralConstants::Kdt)) / 2;
+        double transWX = ((x_ - smoothX_) + (rotatedX * dT_)) / 2;
+        double transWY = ((y_ - smoothY_) + (rotatedY * dT_)) / 2;
 
         double transX = x_ - smoothX_;
         double transY = y_ - smoothY_;
@@ -161,8 +165,8 @@ void SwerveDrive::calcOdometry(double turretAngle)
     }
     else
     {
-        x_ += rotatedX * GeneralConstants::Kdt;
-        y_ += rotatedY * GeneralConstants::Kdt;
+        x_ += rotatedX * dT_;
+        y_ += rotatedY * dT_;
 
         if(x_ != 0 || y_ != 0)
         {
@@ -308,7 +312,7 @@ double SwerveDrive::getGoalXVel() //TODO implement limelight distance if math wo
     frc::SmartDashboard::PutNumber("RGXV", rGoalXVel);
     return rGoalXVel;*/
 
-    frc::SmartDashboard::PutNumber("RGXV", goalXVel_);
+    //frc::SmartDashboard::PutNumber("RGXV", goalXVel_);
     return goalXVel_;
 
 }
@@ -330,6 +334,6 @@ double SwerveDrive::getGoalYVel()
     frc::SmartDashboard::PutNumber("RGYV", rGoalYVel);
     return rGoalYVel;*/
 
-    frc::SmartDashboard::PutNumber("RGYV", goalYVel_);
+    //frc::SmartDashboard::PutNumber("RGYV", goalYVel_);
     return goalYVel_;
 }

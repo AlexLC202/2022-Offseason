@@ -38,11 +38,11 @@ class SwerveModule
         WPI_TalonFX driveMotor_;
         WPI_CANCoder cancoder_;
 
-        double maxV = 0;
-        double maxA = 0;
+        double maxV = 1320;
+        double maxA = 100000;
         double kP = 0;
         double kD = 0;
-        double kV = 0;
+        double kV = 0.00454545;
         double kA = 0;
         TrajectoryCalc trajectoryCalc_;
         bool initTrajectory_;
@@ -51,6 +51,9 @@ class SwerveModule
         std::string id_;
         double offset_;
         int direction_ = 1;
+
+        double prevTime_, dT_;
+        frc::Timer timer_;
 
         double aPrevError_, aIntegralError_, dPrevError_, dIntegralError_;
 

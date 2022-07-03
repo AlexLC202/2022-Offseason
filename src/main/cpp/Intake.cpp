@@ -41,7 +41,7 @@ void Intake::periodic()
             retract();
             break;
         }
-        case EXTENDED_IDLE: //Probably never gonna use
+        case EXTENDED_IDLE:
         {
             stop();
             deploy();
@@ -49,6 +49,7 @@ void Intake::periodic()
         }
         case LOADING:
         {
+            retract();
             run(true);
             break;
         }

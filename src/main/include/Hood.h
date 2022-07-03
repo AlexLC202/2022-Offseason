@@ -55,7 +55,9 @@ class Hood
         double kP_ = 0.0008; //TODO tune values, also only with physics and this time it's shit
         double kI_ = 0.00;
         double kD_ = 0.0;
-        bool atPos_;
+
+        double prevTime_, dT_;
+        frc::Timer timer_;
         //0.0008, 0.000, 0.0000001
         //0.0025, 0.0001, 0.0000001
 };

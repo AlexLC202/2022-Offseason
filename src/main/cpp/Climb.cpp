@@ -1,6 +1,9 @@
 #include "Climb.h"
 
-Climb::Climb() : gearboxMaster_(ClimbConstants::MASTER_ID), gearboxSlave_(ClimbConstants::SLAVE_ID), pneumatic1_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_1_ID), pneumatic2_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_2_ID), brake_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::BRAKE_ID)
+Climb::Climb() : gearboxMaster_(ClimbConstants::MASTER_ID), gearboxSlave_(ClimbConstants::SLAVE_ID), 
+pneumatic1_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_1_ID), 
+pneumatic2_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_2_ID), 
+brake_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::BRAKE_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
 {
     gearboxMaster_.SetNeutralMode(NeutralMode::Brake);
     gearboxSlave_.SetNeutralMode(NeutralMode::Brake);
@@ -9,6 +12,7 @@ Climb::Climb() : gearboxMaster_(ClimbConstants::MASTER_ID), gearboxSlave_(ClimbC
 
     state_ = IDLE;
     autoState_ = UNINITIATED;
+
 }
 
 Climb::State Climb::getState()
@@ -31,9 +35,12 @@ void Climb::setAutoState(AutoState autoState)
     autoState_ = autoState;
 }
 
-void Climb::periodic(double pitch)
+void Climb::periodic(double roll)
 {
-    pitch_ = pitch;
+    roll_ = roll;
+    frc::SmartDashboard::PutNumber("Roll", roll);
+    double pos = gearboxMaster_.GetSelectedSensorPosition();
+    frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     switch(state_)
     {
@@ -102,6 +109,7 @@ void Climb::autoClimb()
             setBrake(false);
             stageComplete_ = false;
             nextStage_ = false;
+            initTrajectory_ = false;
             autoState_ = CLIMB_LOW;
             break;
         }
@@ -118,6 +126,7 @@ void Climb::autoClimb()
             {
                 stageComplete_ = false;
                 nextStage_ = false;
+                initTrajectory_ = false;
                 autoState_ = EXTEND_TO_MID;
             }
             break;
@@ -135,6 +144,7 @@ void Climb::autoClimb()
             {
                 stageComplete_ = false;
                 nextStage_ = false;
+                initTrajectory_ = false;
                 autoState_ = CLIMB_MID;
             }
             break;
@@ -152,6 +162,7 @@ void Climb::autoClimb()
             {
                 stageComplete_ = false;
                 nextStage_ = false;
+                initTrajectory_ = false;
                 autoState_ = EXTEND_TO_HIGH;
             }
             break;
@@ -169,6 +180,7 @@ void Climb::autoClimb()
             {
                 stageComplete_ = false;
                 nextStage_ = false;
+                initTrajectory_ = false;
                 autoState_ = CLIMB_HIGH;
             }
             break;
@@ -214,6 +226,7 @@ bool Climb::climbBar()
     if(gearboxMaster_.GetSupplyCurrent() > ClimbConstants::STALL_CURRENT)
     {
         gearboxMaster_.SetVoltage(units::volt_t(0));
+        bottomPos_ = gearboxMaster_.GetSelectedSensorPosition();
         return true;
     }
 
@@ -230,7 +243,7 @@ bool Climb::climbBar()
 bool Climb::raiseToBar()
 {
     double pos = gearboxMaster_.GetSelectedSensorPosition();
-    if(pos > ClimbConstants::ABOVE_STATIC_HOOKS)
+    /*if(pos > ClimbConstants::ABOVE_STATIC_HOOKS)
     {
         gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_RAISE_VOLTAGE)); //TODO get direction and speed
     }
@@ -241,12 +254,34 @@ bool Climb::raiseToBar()
     else if(pos <= ClimbConstants::CLEAR_OF_BARS)
     {
         gearboxMaster_.SetVoltage(units::volt_t(-pos * kP_)); //TODO make a proper PID?
+    }*/
+
+    frc::SmartDashboard::PutNumber("CPFB", bottomPos_ - pos);
+
+    trajectoryCalc_.setPrintError(true);
+    
+    if(pos > bottomPos_ - ClimbConstants::TOO_FAR_FROM_STATIC_HOOKS)
+    {
+        gearboxMaster_.SetVoltage(units::volt_t(0));
     }
-    //TODO see if clamping at 6 and having two stages is better, or if quick deceleration is better
+    else if(pos > bottomPos_ - ClimbConstants::ABOVE_STATIC_HOOKS)
+    {
+        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_RAISE_VOLTAGE));
+    }
+    else
+    {
+        if(!initTrajectory_)
+        {
+            initTrajectory_ = true;
+            trajectoryCalc_.generateTrajectory(gearboxMaster_.GetSelectedSensorPosition(), 0, gearboxMaster_.GetSelectedSensorVelocity());
+        }
+
+        gearboxMaster_.SetVoltage(units::volt_t(trajectoryCalc_.calcPower(gearboxMaster_.GetSelectedSensorPosition(), gearboxMaster_.GetSelectedSensorVelocity())));
+    }
 
     if(autoState_ == EXTEND_TO_MID)
     {
-        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD)
+        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD) //TODO make more strict, maybe when motion is slow?
         {
             setPneumatics(true, true);
             return true;
@@ -259,12 +294,15 @@ bool Climb::raiseToBar()
     }
     else if(autoState_ == EXTEND_TO_HIGH)
     {
-        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD && pitch_ > ClimbConstants::PITCH_MIN && pitch_ < ClimbConstants::PITCH_MAX)
+        if(abs(pos) < ClimbConstants::EXTEND_THRESHOLD && (roll_ > ClimbConstants::ROLL_MAX || roll_ < ClimbConstants::ROLL_MIN))
         {
             setPneumatics(true, false);
             return true;
         }
     }
+
+    //gearboxMaster_.SetVoltage(units::volt_t(-6));
+    //frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     return false;
 }
@@ -273,3 +311,7 @@ void Climb::setBrake(bool brake)
 {
     brake_.Set(!brake);
 }
+
+//123905
+//116580
+//110000

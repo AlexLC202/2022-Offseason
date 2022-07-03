@@ -16,6 +16,10 @@ SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offse
 
 void SwerveModule::periodic(double driveSpeed, double angle)
 {
+    double time = timer_.GetFPGATimestamp().value();
+    dT_ = time - prevTime_;
+    prevTime_ = time;
+    
     move(driveSpeed, angle);
 }
 
@@ -24,16 +28,19 @@ void SwerveModule::move(double driveSpeed, double angle)
     //frc::SmartDashboard::PutNumber(id_ + " Wanted speed", driveSpeed);
     //frc::SmartDashboard::PutNumber(id_ + " Wanted angle", angle);
 
-    /*if(abs(setTrajectoryPos_ - angle) > 0.75 && initTrajectory_) //TODO get value
+    /*if(abs(setTrajectoryPos_ - angle) > 0.1 && initTrajectory_) //TODO get value
     {
         setTrajectoryPos_ = angle;
 
-        double pos = get<2>(trajectoryCalc_.getProfile()) + posOffset_;
+        //double pos = get<2>(trajectoryCalc_.getProfile()) + posOffset_;
+        //posOffset_ = pos;
+        double pos = getAngle();
         posOffset_ = pos;
+
         double error = findError(angle, pos);
 
-        double vel = get<1>(trajectoryCalc_.getProfile());
-        
+        //double vel = get<1>(trajectoryCalc_.getProfile());
+        double vel = cancoder_.GetVelocity();
 
         trajectoryCalc_.generateTrajectory(0, error, vel);
     }
@@ -58,13 +65,18 @@ void SwerveModule::move(double driveSpeed, double angle)
         turnMotor_.SetVoltage(swivelVols);
     }*/
 
+    //turnMotor_.SetVoltage(units::volt_t(4));
+    //1, 3.77, 95.49, 95.49
+    //2, 0.91, 395.60, 197.8
+    //3, 0.55, 654.54, 218.18
+    //4, 0.4, 900, 225
+    //frc::SmartDashboard::PutNumber(id_ + " pos", cancoder_.GetAbsolutePosition());
+
     units::volt_t turnVolts{calcAngPID(angle)};
     turnMotor_.SetVoltage(turnVolts);
     //frc::SmartDashboard::PutNumber(id_ + " Turn volts", turnVolts.value());
 
-    //driveMotor_.Set(ControlMode::Velocity, driveSpeed * GeneralConstants::MAX_RPM);
-
-    units::volt_t driveVolts{direction_ * calcDrivePID(driveSpeed)};
+    units::volt_t driveVolts{direction_ * calcDrivePID(driveSpeed)/* * 0.15*/};
     driveMotor_.SetVoltage(driveVolts);
     //frc::SmartDashboard::PutNumber(id_ + " Drive volts", driveVolts.value());
     
@@ -76,8 +88,8 @@ double SwerveModule::calcAngPID(double setAngle)
     double error = findError(setAngle, getAngle());
     //frc::SmartDashboard::PutNumber(id_ + "Angle error", error);
 
-    aIntegralError_ += error * GeneralConstants::Kdt;
-    double deltaError = (error - aPrevError_) / GeneralConstants::Kdt;
+    aIntegralError_ += error * dT_;
+    double deltaError = (error - aPrevError_) / dT_;
     if(abs(aPrevError_) < 2 && error > 5) //TODO get value
     {
         deltaError = 0;
@@ -119,8 +131,8 @@ double SwerveModule::calcDrivePID(double driveSpeed)
 
     //frc::SmartDashboard::PutNumber(id_ + "velocity error", error);
 
-    dIntegralError_ += error * GeneralConstants::Kdt;
-    double deltaError = (error - dPrevError_) / GeneralConstants::Kdt;
+    dIntegralError_ += error * dT_;
+    double deltaError = (error - dPrevError_) / dT_;
     dPrevError_ = error;
 
     if(abs(deltaError) < 40 && error > 100) //TODO get value, also test if needed

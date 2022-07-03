@@ -11,6 +11,7 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
+
 class SwerveDrive
 {
     public:
@@ -49,7 +50,11 @@ class SwerveDrive
         double smoothX_, smoothY_, smoothWheelX_, smoothWheelY_;
         bool foundGoal_ = false;
 
+        double prevTime_, dT_;
+
         Limelight* limelight_;
+
+        frc::Timer timer_;
 
         double trSpeed_, brSpeed_, tlSpeed_, blSpeed_, trAngle_, brAngle_, tlAngle_, blAngle_;
 

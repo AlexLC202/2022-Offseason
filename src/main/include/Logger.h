@@ -19,6 +19,7 @@ class Logger
         std::string fileName_;
 
         bool open_;
+        double startTime_;
 
         frc::Timer timer_; //TODO implement, also has red thing weird yeah
 };

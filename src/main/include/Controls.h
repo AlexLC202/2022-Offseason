@@ -2,6 +2,7 @@
 
 #include <frc/Joystick.h>
 #include "Constants.h"
+#include <iostream>
 #include <frc/smartdashboard/SmartDashboard.h>
 
 class Controls
@@ -33,6 +34,9 @@ class Controls
 
         bool getClimbMode(){ return climbMode_; }
         void setClimbMode(bool climbMode){ climbMode_ = climbMode; }
+
+        bool resetUnload();
+        bool manuallyOverrideTurret();
 
     private:
         bool climbMode_;

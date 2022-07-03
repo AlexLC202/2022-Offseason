@@ -25,6 +25,15 @@ double Controls::getXStrafe()
         return 0;
     }
     return (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
+
+    /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
+    {
+        return 0.1;
+    }
+    else
+    {
+        return 0;
+    }*/
 }
 
 double Controls::getYStrafe()
@@ -35,10 +44,20 @@ double Controls::getYStrafe()
         return 0;
     }
     return (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
+
+    /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
+    {
+        return 0;
+    }
+    else
+    {
+        return 0.1;
+    }*/
 }
 
 double Controls::getTurn()
 {
+    //return 0;
     /*if(climbMode_ && rJoy_.GetTrigger())
     {
         return 0;
@@ -56,7 +75,7 @@ double Controls::getTurn()
     {
         return 0;
     }
-    return (turn > 0) ? ((turn - 0.05) / 0.95) * 0.5 : ((turn + 0.05) / 0.95) * 0.5;
+    return (turn > 0) ? ((turn - 0.05) / 0.95) * 0.3 : ((turn + 0.05) / 0.95) * 0.3;
 }
 
 bool Controls::fieldOrient()
@@ -125,5 +144,28 @@ bool Controls::decreaseRange()
 
 double Controls::getTurretManual()
 {
+    /*if(abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X)) > 0.3)
+    {
+        if(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) > 0)
+        {
+            return 1;
+        }
+        else
+        {
+            return -1;
+        }
+    }*/
+
     return xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) * 0.3 * GeneralConstants::MAX_VOLTAGE;
+}
+
+bool Controls::resetUnload()
+{
+    return xbox_.GetTrigger();
+    cout << "resetting unload" << endl;
+}
+
+bool Controls::manuallyOverrideTurret()
+{
+    return xbox_.GetTrigger();
 }

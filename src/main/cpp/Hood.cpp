@@ -36,7 +36,7 @@ double Hood::getHoodTicks()
 
 bool Hood::isReady()
 {
-    return atPos_;
+    return (abs(setPos_ - hoodMotor_.GetSelectedSensorPosition()) < ShooterConstants::HOOD_READY);
 }
 
 void Hood::periodic()
@@ -79,6 +79,7 @@ void Hood::reset()
 {
     zeroed_ = true;
     hoodMotor_.SetSelectedSensorPosition(0);
+    initTrajectory_ = false;
 }
 
 void Hood::zero()
@@ -103,6 +104,7 @@ void Hood::setWantedPos(double setPos)
 void Hood::move()
 {
     double volts = calcPID();
+    //volts = frc::SmartDashboard::GetNumber("HINV", 0);
 
     /*double volts;
     if(abs(setPos_ - setTrajectoryPos_) > 5 && initTrajectory_) //TODO get value
@@ -136,10 +138,11 @@ void Hood::move()
     }*/
 
     //volts = -12;
+    //frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 
     if(hoodMotor_.GetSelectedSensorPosition() < ShooterConstants::MAX_HOOD_TICKS && volts < 0)
     {
-        //hoodMotor_.SetVoltage(units::volt_t(0));
+        hoodMotor_.SetVoltage(units::volt_t(0));
     }
     else if(hoodMotor_.GetSelectedSensorPosition() > 0 && volts > 0)
     {
@@ -154,13 +157,16 @@ void Hood::move()
 
 double Hood::calcPID()
 {
+    double time = timer_.GetFPGATimestamp().value();
+    dT_ = time - prevTime_;
+    prevTime_ = time;
+
     //frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
-    frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
 
     double error = setPos_ - hoodMotor_.GetSelectedSensorPosition();
 
-    integralError_ += error * GeneralConstants::Kdt;
-    double deltaError = (error - prevError_) / GeneralConstants::Kdt;
+    integralError_ += error * dT_;
+    double deltaError = (error - prevError_) / dT_;
     if(abs(prevError_) < 50.0 && abs(error > 125)) //TODO get value, probably same as above
     {
         deltaError = 0;
@@ -168,13 +174,11 @@ double Hood::calcPID()
     } 
     prevError_ = error;
 
-    atPos_ = (abs(error) < 100.0); //TODO get value, change back to 50
-
     double power = (kP_*error) + (kI_*integralError_) + (kD_*deltaError);
     power += ShooterConstants::HOOD_FF;
 
     frc::SmartDashboard::PutNumber("HE", error);
-    frc::SmartDashboard::PutNumber("HP", power);
+    //frc::SmartDashboard::PutNumber("HP", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);
 }
 

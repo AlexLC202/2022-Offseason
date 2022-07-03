@@ -8,6 +8,29 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
+Robot::Robot()
+{
+    timer.Start();
+
+    AddPeriodic(
+        [&]
+        {
+            //autoPaths_.periodic(swerveDrive_);
+
+            //timer.Reset();
+            cout << timer.GetFPGATimestamp().value() << endl;
+            double yaw = navx_->GetYaw() - yawOffset_;
+            Helpers::normalizeAngle(yaw);
+
+            swerveDrive_->periodic(yaw, controls_);
+            shooter_->periodic(-yaw);
+            climb_.periodic(navx_->GetRoll());
+        }, 5_ms, 2_ms);
+
+    
+    //AddPeriodic([&]{ cout << timer.Get().value() << endl; }, 5_ms, 2_ms);
+}
+
 void Robot::RobotInit()
 {
     autoChooser_.SetDefaultOption("Taxi Dumb", AutoPaths::TAXI_DUMB);
@@ -61,6 +84,7 @@ void Robot::AutonomousInit()
     climb_.setPneumatics(false, false);
     limelight_->lightOn(true);
     navx_->ZeroYaw();
+    channel_.setColor(colorChooser_.GetSelected());
 
     AutoPaths::Path path = autoChooser_.GetSelected();
     //m_autoSelected = frc::SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
@@ -75,46 +99,51 @@ void Robot::AutonomousInit()
 void Robot::AutonomousPeriodic()
 {
     limelight_->lightOn(true);
-    shooter_->setColor(colorChooser_.GetSelected());
-
-    autoPaths_.periodic(swerveDrive_);
+    //shooter_->setColor(colorChooser_.GetSelected());
+    //channel_.setColor(colorChooser_.GetSelected());
 
     intake_.setState(autoPaths_.getIntakeState());
     shooter_->setState(autoPaths_.getShooterState());
     
-    double yaw = navx_->GetYaw() - yawOffset_;
+    /*double yaw = navx_->GetYaw() - yawOffset_;
     Helpers::normalizeAngle(yaw);
 
     //swerveDrive_->periodic(yaw, controls_);
     swerveDrive_->setYaw(yaw);
     shooter_->periodic(-yaw);
+    climb_.periodic(navx_->GetRoll());*/
+
     intake_.periodic();
-    climb_.periodic(navx_->GetPitch());
 }
 
 void Robot::TeleopInit()
 {
     controls_->setClimbMode(false);
     autoPaths_.stopTimer();
-    odometryLogger->openFile();
-    //hoodLogger->openFile();
-    //turretLogger->openFile();
+    channel_.setColor(colorChooser_.GetSelected());
+
+    //odometryLogger_->openFile();
+    flywheelLogger_->openFile();
+    //hoodLogger_->openFile();
+    //turretLogger_->openFile();
 
     //limelight_->lightOn(true);
     //climb_.setPneumatics(false, false);
 
-    frc::SmartDashboard::PutNumber("InV", 0);
-    frc::SmartDashboard::PutNumber("InA", 0);
-    frc::SmartDashboard::PutNumber("fKp", 0);
+    //frc::SmartDashboard::PutNumber("InV", 0);
+    //frc::SmartDashboard::PutNumber("InA", 0);
+    //frc::SmartDashboard::PutNumber("fKp", 0);
+    frc::SmartDashboard::PutNumber("HINV", 0);
+    frc::SmartDashboard::PutNumber("FINV", 0);
 
 }
 
 void Robot::TeleopPeriodic()
 {
-    shooter_->setColor(colorChooser_.GetSelected());
+    //shooter_->setColor(colorChooser_.GetSelected());
+    //channel_.setColor(colorChooser_.GetSelected());
 
     controls_->periodic();
-    limelight_->lightOn(true);
     frc::SmartDashboard::PutBoolean("Climb Mode", controls_->getClimbMode());
 
     if(controls_->fieldOrient())
@@ -138,7 +167,6 @@ void Robot::TeleopPeriodic()
 
         if(controls_->autoClimbPressed()) //TODO resusing buttons, remove later
         {
-            cout << "t" << endl;
             shooter_->setPID(fKp, fKi, fKd);
             shooter_->setHoodPID(hKp, hKi, hKd);
         }
@@ -155,29 +183,46 @@ void Robot::TeleopPeriodic()
             shooter_->decreaseRange();
         }
 
-        if (controls_->intakePressed())
-        {
-            intake_.setState(Intake::INTAKING);
-    }
-        else if (controls_->outakePressed())
-        {
-           intake_.setState(Intake::OUTAKING);
-        }
-        else
-        {
-            intake_.setState(Intake::RETRACTED_IDLE);
-        }
+        frc::SmartDashboard::PutBoolean("BAD IDEA", channel_.badIdea());
 
-
-        if(controls_->shootPressed())
+        if((channel_.badIdea() || shooter_->getState() == Shooter::UNLOADING) && !controls_->resetUnload())
+        {
+            //cout << "unloading state" << endl;
+            shooter_->setState(Shooter::UNLOADING);
+            intake_.setState(Intake::LOADING);
+        }
+        else if(controls_->shootPressed())
         {
             shooter_->setState(Shooter::REVING);
             intake_.setState(Intake::LOADING);
+            //intake_.setState(Intake::INTAKING);
         }
         else
         {
             shooter_->setState(Shooter::TRACKING);
+            intake_.setState(Intake::RETRACTED_IDLE);
         }
+        //shooter_->setTurretManualVolts(controls_->getTurretManual());
+
+        if(controls_->manuallyOverrideTurret())
+        {
+            shooter_->setState(Shooter::MANUAL);
+        }
+
+        if (controls_->intakePressed())
+        {
+            intake_.setState(Intake::INTAKING);
+        }
+        else if (controls_->outakePressed())
+        {
+           intake_.setState(Intake::OUTAKING);
+        }
+        else if(intake_.getState() != Intake::LOADING)
+        {
+            intake_.setState(Intake::RETRACTED_IDLE);
+            //intake_.setState(Intake::EXTENDED_IDLE);
+        }
+
     }
     else
     {
@@ -221,29 +266,34 @@ void Robot::TeleopPeriodic()
         
     }
     
-    stringstream odometry;
+    /*stringstream odometry;
     odometry << swerveDrive_->getX() << ", " << swerveDrive_->getY() << ", " 
     << swerveDrive_->getSmoothX() << ", " << swerveDrive_->getSmoothY() << ", " 
     << swerveDrive_->getSWX() << ", " << swerveDrive_->getSWY();
-    odometryLogger->print(odometry.str());
+    odometryLogger_->print(odometry.str());*/
+
+    stringstream flywheel;
+    flywheel << shooter_->getFlyPos() << ", " << shooter_->getFlyVel();
+    flywheelLogger_->print(flywheel.str());
 
     /*stringstream hood;
     hood << shooter_->getHoodTicks();
-    hoodLogger->print(hood.str());
+    hoodLogger_->print(hood.str());
 
     stringstream turret;
     turret << shooter_->getTurretAngle();
-    turretLogger->print(turret.str());*/
+    turretLogger_->print(turret.str());*/
 
     //frc::SmartDashboard::PutNumber("yaw", navx_->GetYaw());
 
-    double yaw = navx_->GetYaw() - yawOffset_;
+    /*double yaw = navx_->GetYaw() - yawOffset_;
     Helpers::normalizeAngle(yaw);
 
     swerveDrive_->periodic(yaw, controls_);
     shooter_->periodic(-yaw);
+    climb_.periodic(navx_->GetRoll());*/
+
     intake_.periodic();
-    climb_.periodic(navx_->GetPitch());
 }
 
 void Robot::DisabledInit()
@@ -260,9 +310,10 @@ void Robot::DisabledInit()
     yawOffset_ = 0;
     swerveDrive_->reset();
 
-    odometryLogger->closeFile();
-    //hoodLogger->closeFile();
-    //turretLogger->closeFile();
+    //odometryLogger_->closeFile();
+    flywheelLogger_->closeFile();
+    //hoodLogger_->closeFile();
+    //turretLogger_->closeFile();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything

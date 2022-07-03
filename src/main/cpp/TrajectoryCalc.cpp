@@ -5,10 +5,31 @@ TrajectoryCalc::TrajectoryCalc(double maxV, double maxA, double kP, double kD, d
 
 }
 
+void TrajectoryCalc::setKP(double kP)
+{
+    kP_ = kP;
+}
+
+void TrajectoryCalc::setKD(double kD)
+{
+    kD_ = kD;
+}
+
+void TrajectoryCalc::setKV(double kV)
+{
+    kV_ = kV;
+}
+
+void TrajectoryCalc::setKA(double kA)
+{
+    kA_ = kA;
+}
+
 void TrajectoryCalc::generateTrajectory(double pos, double setPos, double vel)
 {
-    timer_.Reset();
-    timer_.Start();
+    //timer_.Reset();
+    //timer_.Start();
+    startTime_ = timer_.GetFPGATimestamp().value();
 
     setPos_ = setPos;
     initPos_ = pos;
@@ -135,9 +156,37 @@ void TrajectoryCalc::generateTrajectory(double pos, double setPos, double vel)
 
 }
 
+void TrajectoryCalc::generateVelTrajectory(double setVel, double vel)
+{
+    startTime_ = timer_.GetFPGATimestamp().value();
+
+    double error = setVel - vel;
+    initVel_ = vel;
+    setVel_ = setVel;
+    
+    if(abs(error) < 100) //TODO get value, or if it's even necessary
+    {
+        accelTime_ = 0;
+        direction_ = 0;
+    }
+    else
+    {
+        accelTime_ = abs(error / MAX_A);
+        if(error > 0)
+        {
+            direction_ = 1;
+        }
+        else
+        {
+            direction_ = -1;
+        }
+    }
+
+}
+
 tuple<double, double, double> TrajectoryCalc::getProfile()
 {
-    double time = timer_.Get().value();
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
     double tP, tV, tA;
 
     if (time <= accelTime_ && accelTime_ >= 0.02)
@@ -181,6 +230,26 @@ tuple<double, double, double> TrajectoryCalc::getProfile()
 
 }
 
+pair<double, double> TrajectoryCalc::getVelProfile()
+{
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
+    double tA, tV;
+
+    if(time >= accelTime_ || accelTime_ == 0)
+    {
+        tA = 0;
+        tV = setVel_;
+    }
+    else if(time < accelTime_)
+    {
+        tA = MAX_A * direction_;
+        tV = initVel_ + (MAX_A * direction_ * time);
+    }
+
+    return pair<double, double> (tA, tV);
+
+}
+
 double TrajectoryCalc::calcPower(double pos, double vel)
 {
     tuple<double, double, double> profile = getProfile();
@@ -191,6 +260,46 @@ double TrajectoryCalc::calcPower(double pos, double vel)
     //double deltaAbsoluteError = absoluteError - prevAbsoluteError_;
     //prevAbsoluteError_ = absoluteError;
     double velError = get<1>(profile) - vel;
+    if(printError_)
+    {
+        frc::SmartDashboard::PutNumber("TMError", error);
+        frc::SmartDashboard::PutNumber("TMVError", velError);
+    }
 
-    return (kP_ * error) + (kD_ * velError) + (get<1>(profile) * kV_) + (get<0>(profile) * kA_);
+    double power = (kP_ * error) + (kD_ * velError) + (get<1>(profile) * kV_) + (get<0>(profile) * kA_);
+
+    if(abs(power) > GeneralConstants::MAX_VOLTAGE)
+    {
+        cout << "trapezoidal motion gains are shitting themselves" << endl;
+    }
+
+    power = clamp(power, -GeneralConstants::MAX_VOLTAGE, GeneralConstants::MAX_VOLTAGE);
+    return power;
+}
+
+double TrajectoryCalc::calcVelPower(double vel)
+{
+    pair<double, double> profile = getVelProfile();
+
+    double error = profile.second - vel;
+
+    if(printError_)
+    {
+        frc::SmartDashboard::PutNumber("TMVError", error);
+    }
+
+    double power = (kD_ * error) + (profile.first * kA_) + (profile.second * kV_);
+
+    if(abs(power) > GeneralConstants::MAX_VOLTAGE)
+    {
+        cout << "trapezoidal motion gains are shitting themselves" << endl;
+    }
+
+    power = clamp(power, -GeneralConstants::MAX_VOLTAGE, GeneralConstants::MAX_VOLTAGE);
+    return power;
+}
+
+void TrajectoryCalc::setPrintError(bool printError)
+{
+    printError_ = printError;
 }

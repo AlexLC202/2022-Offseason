@@ -12,7 +12,7 @@
 #include "Limelight.h"
 #include "Hood.h"
 #include "Turret.h"
-#include "Channel.h"
+//#include "Channel.h"
 
 using namespace std;
 
@@ -34,10 +34,12 @@ class Shooter
         void dewindIntegral();
         void increaseRange();
         void decreaseRange();
-        void setColor(Channel::Color color);
+        //void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
         double getHoodTicks();
         double getTurretAngle();
+        double getFlyPos();
+        double getFlyVel();
 
         Shooter(Limelight* limelight, SwerveDrive* swerveDrive);
         void periodic(double yaw);
@@ -46,6 +48,7 @@ class Shooter
 
         double linVelToSensVel(double velocity);
         double calcFlyPID(double velocity);
+        double calcFlyVolts(double velocity);
 
         tuple<double, double, double> calcShootingWhileMoving(double hoodAngle, double velocity, double goalXVel, double goalYVel);
         
@@ -54,9 +57,19 @@ class Shooter
         SwerveDrive* swerveDrive_;
         WPI_TalonFX flywheelMaster_, flywheelSlave_, kickerMotor_;
 
+        double maxV = 20000;
+        double maxA = 40000;
+        double kP = 0;
+        double kD = 0.0005;
+        double kV = 1.0/1814.7555;
+        double kA = 0;
+        TrajectoryCalc flyTrajectoryCalc_;
+        bool initTrajectory_;
+        double setTrajectoryVel_;
+
         Turret turret_;
         Hood hood_;
-        Channel channel_;
+        //Channel channel_;
         bool hoodZeroing_, flywheelReady_, flywheelEjectReady_, shotReady_, hasShot_;
         bool hasMap_  = false;
         double mapPoints_ = 0;
@@ -64,7 +77,10 @@ class Shooter
 
         State state_;
 
-        double setPos_, prevError_, integralError_;
+        double prevTime_, dT_;
+        frc::Timer timer_;
+
+        double setPos_, prevError_, integralError_, prevVelocity_;
         double fKp_ = 0.0005; //TODO tune values
         double fKi_ = 0.00; 
         double fKd_ = 0.0000; 
@@ -72,6 +88,7 @@ class Shooter
         //0.0001
 
         double yaw_;
+        bool unloadShooting_;
 
         map<double, tuple<double, double, double>> shotsMap_;
 };

@@ -10,15 +10,16 @@ void Logger::openFile()
 {
     outstream.open(fileName_);
     open_ = true;
-    timer_.Reset();
-    timer_.Start();
+    startTime_ = timer_.GetFPGATimestamp().value();
+    //timer_.Reset();
+    //timer_.Start();
 }
 
 void Logger::closeFile()
 {
     outstream.close();
     open_ = false;
-    timer_.Stop();
+    //timer_.Stop();
 }
 
 void Logger::print(std::string print)
@@ -28,6 +29,6 @@ void Logger::print(std::string print)
         openFile();
     }
 
-    double time = timer_.Get().value();
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
     outstream << time << ", " << print << std::endl;
 }

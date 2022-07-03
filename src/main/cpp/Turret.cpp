@@ -49,6 +49,7 @@ void Turret::periodic(double yaw, double offset)
         case MANUAL:
         {
             turretMotor_.SetVoltage(units::volt_t(manualVolts_));
+            //frc::SmartDashboard::PutNumber("TPOS", getAngle());
             calcError(); //TODO remove, just for printing values
             break;
         }
@@ -72,6 +73,7 @@ void Turret::setManualVolts(double manualVolts)
 
 bool Turret::isAimed()
 {
+    //return true;
     return aimed_;
 }
 
@@ -88,6 +90,7 @@ double Turret::getAngle()
 void Turret::reset()
 {
     turretMotor_.SetSelectedSensorPosition(0);
+    initTrajectory_ = false;
 }
 
 void Turret::track()
@@ -185,18 +188,28 @@ void Turret::calcUnloadAng()
 double Turret::calcAngularFF()
 {
     double deltaYaw = yaw_ - prevYaw_;
+    prevYaw_ = yaw_;
+
     if(abs(deltaYaw) > 300)
     {
         deltaYaw = (deltaYaw > 0) ? deltaYaw - 360 : deltaYaw + 360;
     }
 
-    double yawVel = deltaYaw / GeneralConstants::Kdt;
-    prevYaw_ = yaw_;
+    double yawVel = deltaYaw / dT_;
 
     double radPerSec = -(yawVel * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
     
-    double ff = radPerSec / GeneralConstants::Kv; //TODO tune
-    return ff;
+    double rff = radPerSec / GeneralConstants::Kv; //TODO tune
+
+    double ff = yawVel / ShooterConstants::TURRET_FF;
+
+    /*frc::SmartDashboard::PutNumber("FDSTAW", yaw_);
+    frc::SmartDashboard::PutNumber("DYAW", deltaYaw);
+    frc::SmartDashboard::PutNumber("TFF", ff);
+    frc::SmartDashboard::PutNumber("{TFF", rff);*/
+    //return 0;
+
+    return rff;
 }
 
 double Turret::calcLinearFF()
@@ -206,9 +219,12 @@ double Turret::calcLinearFF()
     double y = swerveDrive_->getY();
     double distance = sqrt(x * x + y * y);
 
-    double radPerSec = (-vel / distance) * 360 * ShooterConstants::TICKS_PER_TURRET_DEGREE / GeneralConstants::TICKS_PER_ROTATION;
-    
-    return radPerSec / GeneralConstants::Kv; //TODO tune
+    //double radPerSec = (-vel / distance) * 360 * ShooterConstants::TICKS_PER_TURRET_DEGREE / GeneralConstants::TICKS_PER_ROTATION;
+
+    double degPerSec = (-vel / distance) * 180 / M_PI;
+
+    return degPerSec / ShooterConstants::TURRET_FF;
+    //return radPerSec / GeneralConstants::Kv; //TODO tune
 }
 
 double Turret::calcError()
@@ -238,15 +254,31 @@ double Turret::calcError()
         error = (error > 0) ? error - 360 : error + 360;
     }
 
+    if(abs(error) > 60) //COMP disable probably
+    {
+        limelight_->lightOn(false);
+    }
+    else
+    {
+        limelight_->lightOn(true);
+    }
+
+    aimed_ = (abs(error) < ShooterConstants::TURRET_AIMED); //TODO get value, change back to 2.5
+    unloadReady_ = (abs(error) < ShooterConstants::TURRET_UNLOAD_AIMED); //TODO get value
+
     return error;
 }
 
 double Turret::calcPID()
 {
+    double time = timer_.GetFPGATimestamp().value();
+    dT_ = time - prevTime_;
+    prevTime_ = time;
+
     double error = calcError();
     
-    double deltaError = (error - prevError_) / GeneralConstants::Kdt;
-    integralError_ += error * GeneralConstants::Kdt;
+    double deltaError = (error - prevError_) / dT_;
+    integralError_ += error * dT_;
 
     if(abs(prevError_) < 2.5 && abs(error > 5)) //TODO get value, probably same as above
     {
@@ -255,13 +287,9 @@ double Turret::calcPID()
     } 
     prevError_ = error;
 
-    aimed_ = (abs(error) < 3); //TODO get value, change back to 2.5
-    unloadReady_ = (abs(error) < 10); //TODO get value
-
     double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
-    //power = 0;
     power += calcAngularFF();
-    power += calcLinearFF();
+    //power += calcLinearFF();
     frc::SmartDashboard::PutNumber("LTFF", calcLinearFF());
 
     //TODO, disable voltage limit for ffs... like what?
