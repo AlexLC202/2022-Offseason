@@ -64,7 +64,9 @@ class Climb
 
         frc::Solenoid brake_;
 
-        double bottomPos_;
+        double bottomPos_, startTime_;
+        bool waiting_;
+        frc::Timer timer_;
 
         double maxV = 100000;
         double maxA = 110000000;

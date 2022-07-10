@@ -25,7 +25,7 @@ double Limelight::getAdjustedX()
     double y = getYOff();
     adjustAngles(x, y);
 
-    frc::SmartDashboard::PutNumber("LAX", x);
+    //frc::SmartDashboard::PutNumber("LAX", x);
     //frc::SmartDashboard::PutNumber("LAY", y);
 
     return x;

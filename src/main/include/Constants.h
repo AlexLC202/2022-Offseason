@@ -69,8 +69,11 @@ namespace InputConstants
 namespace OutputConstants
 {
     const string odometryFile = frc::filesystem::GetDeployDirectory() + "/odometry.csv"; //"/home/lvuser/odometry.csv";
-    const string hoodFile = frc::filesystem::GetDeployDirectory() + "/hood.csv"; //"/home/lvuser/hood.csv";
-    const string flywheelFile = frc::filesystem::GetDeployDirectory() + "/flywheel.csv";
+    const string hoodFile = "/home/lvuser/hood.csv";
+
+    const string flywheelFile = "/home/lvuser/flywheel.csv";   
+    //const string flywheelFile = frc::filesystem::GetDeployDirectory() + "/flywheel.csv";
+    
     const string climbFile = frc::filesystem::GetDeployDirectory() + "/climb.csv";
     const string swerveModuleFile = frc::filesystem::GetDeployDirectory() + "/swerveModule.csv";
     const string turretFile = "/home/lvuser/turret.csv";
@@ -124,8 +127,7 @@ namespace ClimbConstants
     const int PNEUMATIC_2_ID = 2;
     const int BRAKE_ID = 1;
 
-    const double STALL_CURRENT = 60; //TODO get value better?
-    const double TOO_FAR_FROM_STATIC_HOOKS = 25000;
+    const double TOO_FAR_FROM_STATIC_HOOKS = 16500;
     const double ABOVE_STATIC_HOOKS = 25000; //112000, TODO get values
     const double CLEAR_OF_BARS = 70850;
     //const double OFF_HOOKS = -110500;
@@ -133,11 +135,22 @@ namespace ClimbConstants
     //141700
 
     const double RAISE_VOLTAGE = -6;
-    const double CLIMB_VOLTAGE = 6;
-    const double SLOW_RAISE_VOLTAGE = -0.5; //TODO make sure to lower on bar
+
+    const double LOW_CLIMB_VOLTAGE = 9;
+    const double MID_CLIMB_VOLTAGE = 6;
+    const double HIGH_CLIMB_VOLTAGE = 6;
+
+    const double LOW_STALL_CURRENT = 150;
+    const double MID_STALL_CURRENT = 100;
+    const double HIGH_STALL_CURRENT = 100;
+
+    const double SUPER_SLOW_RAISE_VOLTAGE = -1;
+    const double SLOW_RAISE_VOLTAGE = -2.5; //TODO make sure to lower on bar
 
     const double ROLL_MAX = 150; //TODO yeah these two, also pitch roll idk man
-    const double ROLL_MIN = -150;
+    const double ROLL_MIN = -165;
+
+    const double ON_BAR_DELAY = 0.85;
 }
 
 namespace ShooterConstants
@@ -159,7 +172,8 @@ namespace ShooterConstants
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
     const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
 
-    const double FLYWHEEL_FF = 1600;
+    const double FLYWHEEL_FF = 1703;
+    const double FLYWHEEL_FF_INTERCEPT = -905;
     const double TURRET_FF = 82;
 
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
@@ -168,7 +182,7 @@ namespace ShooterConstants
     const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/ashots.csv";
     const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
-    const int FLYWHEEL_READY = 400;
+    const int FLYWHEEL_READY = 330;
     const int FLYWHEEL_EJECT_READY = 800;
     const int HOOD_READY = 100;
     const int TURRET_AIMED = 3;

@@ -18,7 +18,7 @@ Robot::Robot()
             //autoPaths_.periodic(swerveDrive_);
 
             //timer.Reset();
-            cout << timer.GetFPGATimestamp().value() << endl;
+            //cout << timer.GetFPGATimestamp().value() << endl;
             double yaw = navx_->GetYaw() - yawOffset_;
             Helpers::normalizeAngle(yaw);
 
@@ -123,18 +123,19 @@ void Robot::TeleopInit()
     channel_.setColor(colorChooser_.GetSelected());
 
     //odometryLogger_->openFile();
-    flywheelLogger_->openFile();
-    //hoodLogger_->openFile();
+    //flywheelLogger_->openFile();
+    hoodLogger_->openFile();
     //turretLogger_->openFile();
 
     //limelight_->lightOn(true);
     //climb_.setPneumatics(false, false);
 
     //frc::SmartDashboard::PutNumber("InV", 0);
-    //frc::SmartDashboard::PutNumber("InA", 0);
+    frc::SmartDashboard::PutNumber("InA", 0);
+    frc::SmartDashboard::PutNumber("InHV", 0);
     //frc::SmartDashboard::PutNumber("fKp", 0);
-    frc::SmartDashboard::PutNumber("HINV", 0);
-    frc::SmartDashboard::PutNumber("FINV", 0);
+    //frc::SmartDashboard::PutNumber("HINV", 0);
+    //frc::SmartDashboard::PutNumber("FINV", 0);
 
 }
 
@@ -148,7 +149,6 @@ void Robot::TeleopPeriodic()
 
     if(controls_->fieldOrient())
     {
-        //navx_->Reset();
         navx_->ZeroYaw();
         yawOffset_ = 0;
     }
@@ -272,15 +272,15 @@ void Robot::TeleopPeriodic()
     << swerveDrive_->getSWX() << ", " << swerveDrive_->getSWY();
     odometryLogger_->print(odometry.str());*/
 
-    stringstream flywheel;
-    flywheel << shooter_->getFlyPos() << ", " << shooter_->getFlyVel();
-    flywheelLogger_->print(flywheel.str());
+    /*stringstream flywheel;
+    flywheel << shooter_->getFlyVel();
+    flywheelLogger_->print(flywheel.str());*/
 
-    /*stringstream hood;
-    hood << shooter_->getHoodTicks();
-    hoodLogger_->print(hood.str());
+    // stringstream hood;
+    // hood << shooter_->getHoodTicks();
+    hoodLogger_->print(shooter_->getHoodTicks());
 
-    stringstream turret;
+    /*stringstream turret;
     turret << shooter_->getTurretAngle();
     turretLogger_->print(turret.str());*/
 
@@ -305,9 +305,8 @@ void Robot::DisabledInit()
     shooter_->setState(Shooter::IDLE);
     shooter_->periodic(-navx_->GetYaw());
 
-    //navx_->Reset();
-    navx_->ZeroYaw();
-    yawOffset_ = 0;
+    //navx_->ZeroYaw();
+    //yawOffset_ = 0;
     swerveDrive_->reset();
 
     //odometryLogger_->closeFile();
@@ -322,9 +321,8 @@ void Robot::DisabledPeriodic() //TODO does this even do anything
     //swerveDrive_->setFoundGoal(false);
     limelight_->lightOn(false);
 
-    //navx_->Reset();
-    navx_->ZeroYaw();
-    yawOffset_ = 0;
+    //navx_->ZeroYaw();
+    //yawOffset_ = 0;
     swerveDrive_->reset();
 }
 

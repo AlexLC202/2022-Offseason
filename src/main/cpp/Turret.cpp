@@ -188,6 +188,7 @@ void Turret::calcUnloadAng()
 double Turret::calcAngularFF()
 {
     double deltaYaw = yaw_ - prevYaw_;
+    frc::SmartDashboard::PutNumber("PYAW", prevYaw_);
     prevYaw_ = yaw_;
 
     if(abs(deltaYaw) > 300)
@@ -203,10 +204,11 @@ double Turret::calcAngularFF()
 
     double ff = yawVel / ShooterConstants::TURRET_FF;
 
-    /*frc::SmartDashboard::PutNumber("FDSTAW", yaw_);
+    frc::SmartDashboard::PutNumber("YAW3", yaw_);
+    
     frc::SmartDashboard::PutNumber("DYAW", deltaYaw);
     frc::SmartDashboard::PutNumber("TFF", ff);
-    frc::SmartDashboard::PutNumber("{TFF", rff);*/
+    frc::SmartDashboard::PutNumber("{TFF", rff);
     //return 0;
 
     return rff;
@@ -256,7 +258,7 @@ double Turret::calcError()
 
     if(abs(error) > 60) //COMP disable probably
     {
-        limelight_->lightOn(false);
+        //limelight_->lightOn(false);
     }
     else
     {

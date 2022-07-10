@@ -38,7 +38,6 @@ class Shooter
         void setTurretManualVolts(double manualVolts);
         double getHoodTicks();
         double getTurretAngle();
-        double getFlyPos();
         double getFlyVel();
 
         Shooter(Limelight* limelight, SwerveDrive* swerveDrive);
@@ -88,7 +87,7 @@ class Shooter
         //0.0001
 
         double yaw_;
-        bool unloadShooting_;
+        bool unloadShooting_, unloadShot_;
 
         map<double, tuple<double, double, double>> shotsMap_;
 };

@@ -13,7 +13,8 @@ class Logger
         Logger(std::string fileName);
         void openFile();
         void closeFile();
-        void print(std::string print);
+        void print(double print);
+        void print(string print);
     private:
         std::ofstream outstream;
         std::string fileName_;

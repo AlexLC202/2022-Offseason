@@ -22,11 +22,9 @@ bool Channel::badIdea()
     double proximity = colorSensor_.GetProximity();
     frc::SmartDashboard::PutNumber("prox", proximity);
 
-    if(proximity < 500) //TODO get value
-    {
-        //frc::SmartDashboard::PutBoolean("BadIdea", false);
-        return false;
-    }
+    frc::SmartDashboard::PutNumber("r", color.red);
+    //frc::SmartDashboard::PutNumber("g", color.green);
+    frc::SmartDashboard::PutNumber("b", color.blue);
 
     /*if(color_ == Color::RED)
     {
@@ -44,14 +42,6 @@ bool Channel::badIdea()
 
         return (abs(rError + gError + bError) < 40); //TODO get value
     }*/
-    
-
-    frc::SmartDashboard::PutNumber("r", color.red);
-    //frc::SmartDashboard::PutNumber("g", color.green);
-    frc::SmartDashboard::PutNumber("b", color.blue);
-
-    double red = color.red;
-    //frc::SmartDashboard::PutNumber("rr", 652);
 
     Color ballColor;
     if(color.red > 1.5 * color.blue)
@@ -65,6 +55,22 @@ bool Channel::badIdea()
     else
     {
         ballColor = UNKNOWN;
+    }
+
+    frc::SmartDashboard::PutBoolean("RED", (ballColor == RED));
+    frc::SmartDashboard::PutBoolean("BLUE", (ballColor == BLUE));
+
+    //0.394, 0.1856, red
+    //0.5003, 0.1207, red
+    //0.3907, 0.1861, red
+    
+    //0.2625, 0.2432, neither
+
+
+    if(proximity < 310) //TODO get value
+    {
+        //frc::SmartDashboard::PutBoolean("BadIdea", false);
+        return false;
     }
 
     bool badIdea = (ballColor != color_ && ballColor != UNKNOWN);

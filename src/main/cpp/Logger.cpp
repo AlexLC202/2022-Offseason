@@ -8,7 +8,8 @@ Logger::Logger(std::string fileName)
 
 void Logger::openFile()
 {
-    outstream.open(fileName_);
+    outstream.open(fileName_, std::ofstream::out);
+    //outstream.open(fileName_);
     open_ = true;
     startTime_ = timer_.GetFPGATimestamp().value();
     //timer_.Reset();
@@ -22,7 +23,8 @@ void Logger::closeFile()
     //timer_.Stop();
 }
 
-void Logger::print(std::string print)
+
+void Logger::print(double print)
 {
     if(!open_)
     {
@@ -30,5 +32,22 @@ void Logger::print(std::string print)
     }
 
     double time = timer_.GetFPGATimestamp().value() - startTime_;
-    outstream << time << ", " << print << std::endl;
+
+    //cout << stod(print) << endl;
+
+    outstream << time << ", " << print << endl;
+}
+
+void Logger::print(string print)
+{
+    if(!open_)
+    {
+        openFile();
+    }
+
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
+
+    //cout << stod(print) << endl;
+
+    outstream << time << ", " << print << endl;
 }
