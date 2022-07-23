@@ -23,7 +23,7 @@ class SwervePath
         void generateSplineTrajectory();
         void addPoint(TrajectoryPoint point);
 
-        std::pair<double, double> getPosition();
+        std::tuple<double, double, double> getPosition();
         std::pair<double, double> getVelocity();
 
     private:

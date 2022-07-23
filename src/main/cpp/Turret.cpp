@@ -19,7 +19,7 @@ void Turret::periodic(double yaw, double offset)
     //x_ = x;
     //y_ = y;
 
-    switch(state_)
+    switch(state_) //TODO clean up/combine casees after the switch
     {
         case IDLE:
         {
@@ -35,13 +35,13 @@ void Turret::periodic(double yaw, double offset)
         }
         case TRACKING:
         {
-            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change
+            turretMotor_.SetNeutralMode(NeutralMode::Brake);
             track();
             break;
         }
         case UNLOADING:
         {
-            turretMotor_.SetNeutralMode(NeutralMode::Coast); //TODO change
+            turretMotor_.SetNeutralMode(NeutralMode::Brake);
             calcUnloadAng();
             track();
             break;
@@ -50,7 +50,13 @@ void Turret::periodic(double yaw, double offset)
         {
             turretMotor_.SetVoltage(units::volt_t(manualVolts_));
             //frc::SmartDashboard::PutNumber("TPOS", getAngle());
-            calcError(); //TODO remove, just for printing values
+            //calcError(); //TODO remove, just for printing values
+            break;
+        }
+        case CLIMB:
+        {
+            turretMotor_.SetNeutralMode(NeutralMode::Brake);
+            track();
             break;
         }
     }
@@ -73,13 +79,14 @@ void Turret::setManualVolts(double manualVolts)
 
 bool Turret::isAimed()
 {
-    //return true;
-    return aimed_;
+    return true;
+    //return aimed_;
 }
 
 bool Turret::unloadReady()
 {
-    return unloadReady_;
+    return true;
+    //return unloadReady_;
 }
 
 double Turret::getAngle()
@@ -188,7 +195,7 @@ void Turret::calcUnloadAng()
 double Turret::calcAngularFF()
 {
     double deltaYaw = yaw_ - prevYaw_;
-    frc::SmartDashboard::PutNumber("PYAW", prevYaw_);
+    //frc::SmartDashboard::PutNumber("PYAW", prevYaw_);
     prevYaw_ = yaw_;
 
     if(abs(deltaYaw) > 300)
@@ -204,11 +211,10 @@ double Turret::calcAngularFF()
 
     double ff = yawVel / ShooterConstants::TURRET_FF;
 
-    frc::SmartDashboard::PutNumber("YAW3", yaw_);
-    
+    /*frc::SmartDashboard::PutNumber("YAW3", yaw_);
     frc::SmartDashboard::PutNumber("DYAW", deltaYaw);
     frc::SmartDashboard::PutNumber("TFF", ff);
-    frc::SmartDashboard::PutNumber("{TFF", rff);
+    frc::SmartDashboard::PutNumber("{TFF", rff);*/
     //return 0;
 
     return rff;
@@ -235,6 +241,10 @@ double Turret::calcError()
     if(state_ == UNLOADING)
     {
         error = unloadAngle_ - getAngle();
+    }
+    else if(state_ == CLIMB)
+    {
+        error = -getAngle();
     }
     else if(limelight_->hasTarget())
     {
@@ -290,6 +300,12 @@ double Turret::calcPID()
     prevError_ = error;
 
     double power = (tkP_*error) + (tkI_*integralError_) + (tkD_*deltaError);
+
+    if(state_ == CLIMB)
+    {
+        return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);   
+    }
+
     power += calcAngularFF();
     //power += calcLinearFF();
     frc::SmartDashboard::PutNumber("LTFF", calcLinearFF());

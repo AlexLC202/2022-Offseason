@@ -83,7 +83,7 @@ void SwervePath::addPoint(TrajectoryPoint point)
     ++numPoints_;
 }
 
-std::pair<double, double> SwervePath::getPosition()
+std::tuple<double, double, double> SwervePath::getPosition()
 {
     
 }

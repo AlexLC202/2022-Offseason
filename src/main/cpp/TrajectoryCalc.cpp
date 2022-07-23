@@ -1,9 +1,15 @@
 #include "TrajectoryCalc.h"
 
-TrajectoryCalc::TrajectoryCalc(double maxV, double maxA, double kP, double kD, double kV, double kA) : MAX_V(maxV), MAX_A(maxA), kP_(kP), kD_(kD), kV_(kV), kA_(kA)
+TrajectoryCalc::TrajectoryCalc(double maxV, double maxA, double kP, double kD, double kV, double kA) : MAX_V(maxV), MAX_A(maxA), kP_(kP), kD_(kD), kV_(kV), kA_(kA), kVI_(0)
+{
+    
+}
+
+TrajectoryCalc::TrajectoryCalc(double maxV, double maxA, double kP, double kD, double kV, double kA, double kVI) : MAX_V(maxV), MAX_A(maxA), kP_(kP), kD_(kD), kV_(kV), kA_(kA), kVI_(kVI)
 {
 
 }
+
 
 void TrajectoryCalc::setKP(double kP)
 {
@@ -23,6 +29,11 @@ void TrajectoryCalc::setKV(double kV)
 void TrajectoryCalc::setKA(double kA)
 {
     kA_ = kA;
+}
+
+void TrajectoryCalc::setKVI(double kVI)
+{
+    kVI_ = kVI;
 }
 
 void TrajectoryCalc::generateTrajectory(double pos, double setPos, double vel)
@@ -266,7 +277,7 @@ double TrajectoryCalc::calcPower(double pos, double vel)
         frc::SmartDashboard::PutNumber("TMVError", velError);
     }
 
-    double power = (kP_ * error) + (kD_ * velError) + (get<1>(profile) * kV_) + (get<0>(profile) * kA_);
+    double power = (kP_ * error) + (kD_ * velError) + ((get<1>(profile) - kVI_) * kV_) + (get<0>(profile) * kA_);
 
     if(abs(power) > GeneralConstants::MAX_VOLTAGE)
     {

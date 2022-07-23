@@ -1,6 +1,6 @@
 #include "Logger.h"
 
-Logger::Logger(std::string fileName)
+Logger::Logger(string fileName)
 {
     fileName_ = fileName;
     open_ = false;
@@ -8,8 +8,8 @@ Logger::Logger(std::string fileName)
 
 void Logger::openFile()
 {
-    outstream.open(fileName_, std::ofstream::out);
-    //outstream.open(fileName_);
+    outstream_.open(fileName_, ofstream::out);
+    //outstream_.open(fileName_);
     open_ = true;
     startTime_ = timer_.GetFPGATimestamp().value();
     //timer_.Reset();
@@ -18,11 +18,31 @@ void Logger::openFile()
 
 void Logger::closeFile()
 {
-    outstream.close();
+    outstream_.close();
     open_ = false;
     //timer_.Stop();
 }
 
+void Logger::addPrint(string print)
+{
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
+    pair<double, string> printPair(time, print);
+    prints_.push_back(printPair);
+}
+
+void Logger::print()
+{
+    ofstream outstream;
+    outstream.open(fileName_, ofstream::out);
+
+
+    for(int i = 0; i < prints_.size(); ++i)
+    {
+        outstream << prints_[i].first << ", " << prints_[i].second << endl;
+    }
+
+    outstream.close();
+}
 
 void Logger::print(double print)
 {
@@ -33,9 +53,13 @@ void Logger::print(double print)
 
     double time = timer_.GetFPGATimestamp().value() - startTime_;
 
-    //cout << stod(print) << endl;
+    stringstream stream;
+    stream << time << ", " << print;
+    //cout << stream.str() << endl;
+    outstream_ << stream.str() << endl;
 
-    outstream << time << ", " << print << endl;
+    //cout << stod(print) << endl;
+    //outstream_ << time << ", " << print << endl;
 }
 
 void Logger::print(string print)
@@ -49,5 +73,5 @@ void Logger::print(string print)
 
     //cout << stod(print) << endl;
 
-    outstream << time << ", " << print << endl;
+    outstream_ << time << ", " << print << endl;
 }

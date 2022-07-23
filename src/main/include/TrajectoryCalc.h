@@ -10,10 +10,13 @@ class TrajectoryCalc
 {
     public:
         TrajectoryCalc(double maxV, double maxA, double kP, double kD, double kV, double kA);
+        TrajectoryCalc(double maxV, double maxA, double kP, double kD, double kV, double kA, double kVI);
+
         void setKP(double kP);
         void setKD(double kD);
         void setKV(double kV);
         void setKA(double kA);
+        void setKVI(double kVI);
 
         void generateTrajectory(double pos, double setPos, double vel);
         void generateVelTrajectory(double setVel, double vel);
@@ -28,7 +31,7 @@ class TrajectoryCalc
 
     private:
         const double MAX_V, MAX_A;
-        double kP_, kD_, kV_, kA_;
+        double kP_, kD_, kV_, kA_, kVI_;
 
         double /*prevAbsoluteError_,*/ setPos_, setVel_, initPos_, initVel_, startTime_;
 

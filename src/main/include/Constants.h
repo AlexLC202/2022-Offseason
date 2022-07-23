@@ -50,6 +50,8 @@ namespace InputConstants
     const int XBOX_PORT = 2;
     const int XBOX_LJOY_X = 0;
     const int XBOX_LJOY_Y = 1;
+    const int XBOX_LTRIGGER = 2;
+    const int XBOX_RTRIGGER = 3;
     const int XBOX_RJOY_X = 4;
     const int XBOX_RJOY_Y = 5;
 
@@ -129,26 +131,31 @@ namespace ClimbConstants
 
     const double TOO_FAR_FROM_STATIC_HOOKS = 16500;
     const double ABOVE_STATIC_HOOKS = 25000; //112000, TODO get values
-    const double CLEAR_OF_BARS = 70850;
+    const double CLEAR_OF_BARS = 70850; //141700 (average down value)
+    const double NEARING_HARDSTOP = 100000;
     //const double OFF_HOOKS = -110500;
     const double EXTEND_THRESHOLD = 1000; //TODO experiment for value
-    //141700
+    const double HIGH_EXTEND_THRESHOLD = 4000;
 
-    const double RAISE_VOLTAGE = -6;
+    const double RAISE_VOLTAGE = -6; //TODO increase, get better trapezoidal motion and stuff
 
     const double LOW_CLIMB_VOLTAGE = 9;
     const double MID_CLIMB_VOLTAGE = 6;
     const double HIGH_CLIMB_VOLTAGE = 6;
 
-    const double LOW_STALL_CURRENT = 150;
-    const double MID_STALL_CURRENT = 100;
-    const double HIGH_STALL_CURRENT = 100;
+    //const double LOW_STALL_CURRENT = 175;
+    //const double MID_STALL_CURRENT = 100;
+    //const double HIGH_STALL_CURRENT = 100;
+
+    const double LOW_STALL_CURRENT_SPIKE = 75;
+    const double MID_STALL_CURRENT_SPIKE = 50;
+    const double HIGH_STALL_CURRENT_SPIKE = 50;
 
     const double SUPER_SLOW_RAISE_VOLTAGE = -1;
     const double SLOW_RAISE_VOLTAGE = -2.5; //TODO make sure to lower on bar
 
-    const double ROLL_MAX = 150; //TODO yeah these two, also pitch roll idk man
-    const double ROLL_MIN = -165;
+    const double ROLL_MAX = 165; //TODO yeah these two, also pitch roll idk man
+    const double ROLL_MIN = -180;
 
     const double ON_BAR_DELAY = 0.85;
 }
@@ -163,17 +170,22 @@ namespace ShooterConstants
 
     const int MAX_HOOD_TICKS = -4000;
     const double MAX_HOOD_ANGLE = 63; //TODO get values
-    const double MIN_HOOD_ANGLE = 43; //yeah
-    const double HOOD_ZERO_CURRENT = 2.8; //TODO test
+    const double MIN_HOOD_ANGLE = 43; //yeah 38???
+    const double HOOD_ZERO_CURRENT = 0.6; //TODO test
     const double TICKS_PER_HOOD_DEGREE = 197.78; //TODO get value
-    const double HOOD_FF = -0.69;
+    const double HOOD_WEIGHT_FF = -0.69;
+
+    const double HOOD_NEG_FF = 18370; //18818.3, 18370
+    const double HOOD_NEG_FF_INTERCEPT = 13400; //9850.67, 13400
+    const double HOOD_POS_FF = 18370;
+    const double HOOD_POS_FF_INTERCEPT = 13400;
 
     const double FLYWHEEL_RADIUS = 0.0381; //TODO 2 inches, make more precise
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
     const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
 
     const double FLYWHEEL_FF = 1703;
-    const double FLYWHEEL_FF_INTERCEPT = -905;
+    const double FLYWHEEL_FF_INTERCEPT = -750;
     const double TURRET_FF = 82;
 
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
@@ -187,6 +199,11 @@ namespace ShooterConstants
     const int HOOD_READY = 100;
     const int TURRET_AIMED = 3;
     const int TURRET_UNLOAD_AIMED = 7;
+
+    const double KICKER_VOLTS = 1;
+
+    const double UNLOADING_CURRENT = 15;
+    const double UNLOADING_CURRENT_LOW = 5;
 
 }
 

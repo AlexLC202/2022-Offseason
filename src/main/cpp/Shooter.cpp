@@ -130,6 +130,16 @@ double Shooter::getHoodTicks()
     return hood_.getHoodTicks();
 }
 
+double Shooter::getHoodVel()
+{
+    return hood_.getHoodVel();
+}
+
+double Shooter::getHoodWantedVel()
+{
+    return hood_.getHoodWantedVel();
+}
+
 double Shooter::getTurretAngle()
 {
     return turret_.getAngle();
@@ -167,6 +177,7 @@ void Shooter::periodic(double yaw)
     }
     else if(swerveDrive_->foundGoal())
     {
+        hasShot_ = false; //TODO change this when you're not too lazy to code another odometry
         distance = rangeAdjustment_ + sqrt(swerveDrive_->getX() * swerveDrive_->getX() + swerveDrive_->getY() + swerveDrive_->getY());
     }
     else
@@ -251,19 +262,21 @@ void Shooter::periodic(double yaw)
     frc::SmartDashboard::PutBoolean("Turret Ready", turret_.isAimed());
     //frc::SmartDashboard::PutBoolean("Has Shot", hasShot_);
 
-    //hasShot_ = true;
+    hasShot_ = true;
     shotReady_ = (flywheelReady_ && hood_.isReady() && turret_.isAimed() && hasShot_); //TODO something with have ball?
 
     //frc::SmartDashboard::PutBoolean("badIdea", channel_.badIdea());
     
     //TODO remove, testing
-    //velocity = frc::SmartDashboard::GetNumber("InV", 0);
+    velocity = frc::SmartDashboard::GetNumber("InV", 0);
     //velocity = std::clamp(velocity, 0.0, ShooterConstants::MAX_VELOCITY);
     hoodAngle = frc::SmartDashboard::GetNumber("InA", 0);
-    double hoodV = frc::SmartDashboard::GetNumber("InHV", 0);
     hoodAngle = std::clamp(hoodAngle, (double)ShooterConstants::MAX_HOOD_TICKS, 0.0);
+    
+    double hoodV = frc::SmartDashboard::GetNumber("InHV", 0);
+    hood_.setInVolts(hoodV);
     //turretOffset = 0;
-    frc::SmartDashboard::PutBoolean("UNLOADING", (state_ == UNLOADING));
+    frc::SmartDashboard::PutBoolean("Unloading", (state_ == UNLOADING));
 
     switch(state_)
     {
@@ -275,11 +288,13 @@ void Shooter::periodic(double yaw)
         }
         case TRACKING:
         {
-            hood_.setWantedPos(hoodAngle);
+            //hood_.setWantedPos(hoodAngle);
+            hood_.setWantedPos(-100);
             hood_.setState(Hood::AIMING);
+            
 
-            turret_.setState(Turret::TRACKING);
-            //turret_.setState(Turret::MANUAL);
+            //turret_.setState(Turret::TRACKING);
+            turret_.setState(Turret::MANUAL);
 
             flywheelMaster_.SetVoltage(units::volt_t (0));
             kickerMotor_.SetVoltage(units::volt_t(0));
@@ -288,19 +303,22 @@ void Shooter::periodic(double yaw)
         }
         case REVING: //TODO combine for auto shoot later, hood anti-windup
         {
-            hood_.setWantedPos(hoodAngle);
-            //hood_.setWantedPos(-1000);
+            //hood_.setWantedPos(hoodAngle);
+            hood_.setWantedPos(-100);
             hood_.setState(Hood::AIMING);
 
-            turret_.setState(Turret::TRACKING);
-            //turret_.setState(Turret::MANUAL);
+            //turret_.setState(Turret::TRACKING);
+            turret_.setState(Turret::MANUAL);
 
             //cout << velocity << endl;
-            units::volt_t volts {calcFlyPID(velocity)};
-            //units::volt_t volts {calcFlyPID(5000)};
+
+            //units::volt_t volts {calcFlyPID(velocity)};
+            //units::volt_t volts{calcFlyVolts(velocity)};
+            //units::volt_t volts {calcFlyPID(vel_)};
+            units::volt_t volts {calcFlyPID(6500)};
+
             //units::volt_t volts{frc::SmartDashboard::GetNumber("FINV", 0)};
 
-            //units::volt_t volts{calcFlyVolts(velocity)};
             flywheelMaster_.SetVoltage(volts);
             
             //frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
@@ -322,7 +340,7 @@ void Shooter::periodic(double yaw)
             if(shotReady_)
             {
                 //frc::SmartDashboard::PutBoolean("Shooting", true);
-                kickerMotor_.SetVoltage(units::volt_t (4)); //TODO tune value
+                kickerMotor_.SetVoltage(units::volt_t (ShooterConstants::KICKER_VOLTS)); //TODO tune value
             }
             else
             {
@@ -336,7 +354,7 @@ void Shooter::periodic(double yaw)
             hood_.setWantedPos(-2000);
             hood_.setState(Hood::AIMING);
 
-            frc::SmartDashboard::PutNumber("FVEL", flywheelMaster_.GetSelectedSensorVelocity());
+            //frc::SmartDashboard::PutNumber("FVEL", flywheelMaster_.GetSelectedSensorVelocity());
             frc::SmartDashboard::PutNumber("FCUR", flywheelMaster_.GetSupplyCurrent());
             turret_.setState(Turret::UNLOADING);
             //turret_.setState(Turret::MANUAL);
@@ -346,46 +364,48 @@ void Shooter::periodic(double yaw)
 
             if(turret_.unloadReady() && flywheelEjectReady_)
             {
-                kickerMotor_.SetVoltage(units::volt_t (4));
-                if(flywheelMaster_.GetSupplyCurrent() > 10) //TODO get number
-                {
-                    unloadShooting_ = true;
-                    unloadShot_ = false;
-                    cout << "current" << endl;
-                }
-
-                if(unloadShooting_ && flywheelMaster_.GetSupplyCurrent() < 10)
-                {
-                    state_ = TRACKING;
-                    unloadShot_ = true;
-                    unloadShooting_ = false;
-                    cout << "Stopped unloading" << endl;
-                    frc::SmartDashboard::PutBoolean("Current", true);
-                }
-
-                if(unloadShot_)
-                {
-                    state_ = TRACKING;
-                    unloadShot_ = false;
-                    unloadShooting_ = false;
-                }
-                
-                /*if(flywheelMaster_.GetSelectedSensorVelocity() - prevVelocity_ < -10000) //TODO get number, test which is better (or both)
-                {
-                    state_ = TRACKING;
-                    cout << "vel drop: " <<  endl;
-                }*/
-
+                kickerMotor_.SetVoltage(units::volt_t (ShooterConstants::KICKER_VOLTS));
             }
             else
             {
                 kickerMotor_.SetVoltage(units::volt_t(0));
             }
+
+            if(flywheelMaster_.GetSupplyCurrent() > ShooterConstants::UNLOADING_CURRENT)
+            {
+                unloadShooting_ = true;
+                //unloadShot_ = false;
+                //cout << "current" << endl;
+            }
+
+            if(unloadShooting_ && flywheelMaster_.GetSupplyCurrent() < ShooterConstants::UNLOADING_CURRENT_LOW)
+            {
+                state_ = TRACKING;
+                //unloadShot_ = true;
+                unloadShooting_ = false;
+                //cout << "Stopped unloading" << endl;
+            }
+
+            /*if(unloadShot_)
+            {
+                state_ = TRACKING;
+                unloadShot_ = false;
+                unloadShooting_ = false;
+            }*/
+
             break;
         }
         case MANUAL:
         {
             turret_.setState(Turret::MANUAL);
+            hood_.setState(Hood::IDLE);
+
+            flywheelMaster_.SetVoltage(units::volt_t(0));
+            break;
+        }
+        case CLIMB:
+        {
+            turret_.setState(Turret::CLIMB);
             hood_.setState(Hood::IDLE);
 
             flywheelMaster_.SetVoltage(units::volt_t(0));
@@ -404,6 +424,16 @@ void Shooter::reset()
     rangeAdjustment_ = 0;
 }
 
+void Shooter::zeroHood()
+{
+    hood_.setState(Hood::ZEROING);
+}
+
+void Shooter::setVel(double vel)
+{
+    vel_ = vel;
+}
+
 double Shooter::linVelToSensVel(double velocity)
 {
     return ShooterConstants::FLYWHEEL_GEAR_RATIO * (velocity / ShooterConstants::FLYWHEEL_RADIUS) * GeneralConstants::TICKS_PER_ROTATION / ( 20 * M_PI);
@@ -419,7 +449,7 @@ double Shooter::calcFlyPID(double velocity)
     //double error = setAngVel - flywheelMaster_.GetSelectedSensorVelocity();
     double error = velocity - flywheelMaster_.GetSelectedSensorVelocity();
     //frc::SmartDashboard::PutNumber("setFV", setAngVel);
-    //frc::SmartDashboard::PutNumber("Ferror", error);
+    frc::SmartDashboard::PutNumber("Ferror", error);
     //frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
 
     integralError_ += error * dT_;
@@ -453,7 +483,7 @@ double Shooter::calcFlyVolts(double velocity)
 
     flywheelReady_ = (abs(error) < ShooterConstants::FLYWHEEL_READY);
     flywheelEjectReady_ = (abs(error) < ShooterConstants::FLYWHEEL_EJECT_READY);
-    frc::SmartDashboard::PutNumber("FError", error);
+    //frc::SmartDashboard::PutNumber("FError", error);
 
     if(abs(velocity - setTrajectoryVel_) > 100 && initTrajectory_) //TODO get value
     {
@@ -478,9 +508,9 @@ double Shooter::calcFlyVolts(double velocity)
         volts = 0;
     }
 
-    frc::SmartDashboard::PutNumber("FVEL", flywheelMaster_.GetSelectedSensorVelocity());
-    frc::SmartDashboard::PutNumber("FVOLTS", volts);
-    frc::SmartDashboard::PutNumber("WVEL", flyTrajectoryCalc_.getVelProfile().second);
+    //frc::SmartDashboard::PutNumber("FVEL", flywheelMaster_.GetSelectedSensorVelocity());
+    //frc::SmartDashboard::PutNumber("FVOLTS", volts);
+    //frc::SmartDashboard::PutNumber("WVEL", flyTrajectoryCalc_.getVelProfile().second);
 
     return volts;
 }

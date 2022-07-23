@@ -39,8 +39,8 @@ void Climb::periodic(double roll)
 {
     roll_ = roll;
     //frc::SmartDashboard::PutNumber("Roll", roll);
-    double pos = gearboxMaster_.GetSelectedSensorPosition();
-    frc::SmartDashboard::PutNumber("ClimbPos", pos);
+    //double pos = gearboxMaster_.GetSelectedSensorPosition();
+    //frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     switch(state_)
     {
@@ -88,7 +88,7 @@ void Climb::togglePneumatic2()
 
 void Climb::extendArms(double power)
 {
-    frc::SmartDashboard::PutNumber("CP", gearboxMaster_.GetSelectedSensorPosition());
+    //frc::SmartDashboard::PutNumber("CP", gearboxMaster_.GetSelectedSensorPosition());
     frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     gearboxMaster_.SetVoltage(units::volt_t(power)); //TODO check if slave motor spins as well
 }
@@ -112,6 +112,7 @@ void Climb::autoClimb()
         case UNINITIATED:
         {
             gearboxMaster_.SetSelectedSensorPosition(0);
+            climbCurrents_.clear();
             setBrake(false);
             stageComplete_ = false;
             nextStage_ = false;
@@ -237,24 +238,37 @@ bool Climb::climbBar()
 {
     frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     
-    double stallCurrent = 0;
+    double currentSpike = 0;
+    double volts = 0;
     if(autoState_ == CLIMB_LOW)
     {
-        stallCurrent = ClimbConstants::LOW_STALL_CURRENT;
+        currentSpike = ClimbConstants::LOW_STALL_CURRENT_SPIKE;
+        volts = ClimbConstants::LOW_CLIMB_VOLTAGE;
     }
     else if(autoState_ == CLIMB_MID)
     {
-        stallCurrent = ClimbConstants::MID_STALL_CURRENT;
+        currentSpike = ClimbConstants::MID_STALL_CURRENT_SPIKE;
+        volts = ClimbConstants::MID_CLIMB_VOLTAGE;
     }
     else if(autoState_ == CLIMB_HIGH)
     {
-        stallCurrent = ClimbConstants::HIGH_STALL_CURRENT;
+        currentSpike = ClimbConstants::HIGH_STALL_CURRENT_SPIKE;
+        volts = ClimbConstants::HIGH_CLIMB_VOLTAGE;
     }
 
-    if(gearboxMaster_.GetSupplyCurrent() > stallCurrent)
+    if(abs(gearboxMaster_.GetSelectedSensorPosition() - ClimbConstants::CLEAR_OF_BARS) < 5000)
+    {
+        climbCurrents_.push_back(gearboxMaster_.GetSupplyCurrent());
+        midCurrent_ = accumulate(climbCurrents_.begin(), climbCurrents_.end(), 0.0) / climbCurrents_.size();
+    }
+
+    frc::SmartDashboard::PutNumber("MID CUR", midCurrent_);
+
+    if(gearboxMaster_.GetSupplyCurrent() > (midCurrent_ + currentSpike) && gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::NEARING_HARDSTOP)
     {
         gearboxMaster_.SetVoltage(units::volt_t(0));
         bottomPos_ = gearboxMaster_.GetSelectedSensorPosition();
+        climbCurrents_.clear();
         return true;
     }
 
@@ -264,20 +278,6 @@ bool Climb::climbBar()
         return true;
     }
 
-    double volts = 0;
-    if(autoState_ == CLIMB_LOW)
-    {
-        volts = ClimbConstants::LOW_CLIMB_VOLTAGE;
-    }
-    else if(autoState_ == CLIMB_MID)
-    {
-        volts = ClimbConstants::MID_CLIMB_VOLTAGE;
-    }
-    else if(autoState_ == CLIMB_HIGH)
-    {
-        volts = ClimbConstants::HIGH_CLIMB_VOLTAGE;
-    }
-
     gearboxMaster_.SetVoltage(units::volt_t(volts)); //TODO get direction
     return false;
 }
@@ -285,21 +285,8 @@ bool Climb::climbBar()
 bool Climb::raiseToBar()
 {
     double pos = gearboxMaster_.GetSelectedSensorPosition();
-    /*if(pos > ClimbConstants::ABOVE_STATIC_HOOKS)
-    {
-        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_RAISE_VOLTAGE)); //TODO get direction and speed
-    }
-    else if(pos <= ClimbConstants::ABOVE_STATIC_HOOKS && pos > ClimbConstants::CLEAR_OF_BARS)
-    {
-        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::RAISE_VOLTAGE));
-    }
-    else if(pos <= ClimbConstants::CLEAR_OF_BARS)
-    {
-        gearboxMaster_.SetVoltage(units::volt_t(-pos * kP_)); //TODO make a proper PID?
-    }*/
-
-    double posFromBottom = bottomPos_ - pos;
-    frc::SmartDashboard::PutNumber("CPFB", posFromBottom);
+    //double posFromBottom = bottomPos_ - pos;
+    //frc::SmartDashboard::PutNumber("CPFB", posFromBottom);
     //18442
     //22201
 
@@ -307,12 +294,12 @@ bool Climb::raiseToBar()
     
     if(pos > bottomPos_ - ClimbConstants::TOO_FAR_FROM_STATIC_HOOKS)
     {
-        frc::SmartDashboard::PutBoolean("RAISING", false);
+        //frc::SmartDashboard::PutBoolean("RAISING", false);
         gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SUPER_SLOW_RAISE_VOLTAGE));
     }
     else if(pos > bottomPos_ - ClimbConstants::ABOVE_STATIC_HOOKS)
     {
-        frc::SmartDashboard::PutBoolean("RAISING", true);
+        //frc::SmartDashboard::PutBoolean("RAISING", true);
         gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_RAISE_VOLTAGE));
     }
     else
@@ -340,7 +327,6 @@ bool Climb::raiseToBar()
             //double time = timer_.GetFPGATimestamp().value() - startTime_;
             //frc::SmartDashboard::PutNumber("time", time);
             return (timer_.GetFPGATimestamp().value() - startTime_ > ClimbConstants::ON_BAR_DELAY);
-            //return true;
         }
 
         if(pos < ClimbConstants::CLEAR_OF_BARS && pos > ClimbConstants::EXTEND_THRESHOLD)
@@ -350,7 +336,8 @@ bool Climb::raiseToBar()
     }
     else if(autoState_ == EXTEND_TO_HIGH)
     {
-        if(waiting_ || (abs(pos) < ClimbConstants::EXTEND_THRESHOLD && (roll_ > ClimbConstants::ROLL_MAX || roll_ < ClimbConstants::ROLL_MIN)))
+        //frc::SmartDashboard::PutNumber("CPOS", abs(pos));
+        if(waiting_ || (abs(pos) < ClimbConstants::HIGH_EXTEND_THRESHOLD && (roll_ > ClimbConstants::ROLL_MAX || roll_ < ClimbConstants::ROLL_MIN)))
         {
             setPneumatics(true, false);
             if(!waiting_)
@@ -359,15 +346,11 @@ bool Climb::raiseToBar()
                 waiting_ = true;
             }
 
-            double time = timer_.GetFPGATimestamp().value() - startTime_;
-            frc::SmartDashboard::PutNumber("time", time);
+            //double time = timer_.GetFPGATimestamp().value() - startTime_;
+            //frc::SmartDashboard::PutNumber("time", time);
             return (timer_.GetFPGATimestamp().value() - startTime_ > ClimbConstants::ON_BAR_DELAY);
-            //return true;
         }
     }
-
-    //gearboxMaster_.SetVoltage(units::volt_t(-6));
-    //frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     return false;
 }

@@ -25,7 +25,8 @@ class Shooter
             TRACKING,
             REVING,
             UNLOADING,
-            MANUAL
+            MANUAL,
+            CLIMB
         };
         State getState();
         void setState(State state);
@@ -37,6 +38,8 @@ class Shooter
         //void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
         double getHoodTicks();
+        double getHoodVel();
+        double getHoodWantedVel();
         double getTurretAngle();
         double getFlyVel();
 
@@ -44,6 +47,8 @@ class Shooter
         void periodic(double yaw);
         void createMap();
         void reset();
+        void zeroHood();
+        void setVel(double vel);
 
         double linVelToSensVel(double velocity);
         double calcFlyPID(double velocity);
@@ -87,7 +92,9 @@ class Shooter
         //0.0001
 
         double yaw_;
-        bool unloadShooting_, unloadShot_;
+        bool unloadShooting_/*, unloadShot_*/;
 
         map<double, tuple<double, double, double>> shotsMap_;
+
+        double vel_;
 };

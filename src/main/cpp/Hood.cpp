@@ -1,6 +1,6 @@
 #include "Hood.h"
 
-Hood::Hood() : hoodMotor_(ShooterConstants::HOOD_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
+Hood::Hood() : hoodMotor_(ShooterConstants::HOOD_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA, kVI)
 {
     hoodMotor_.SetNeutralMode(NeutralMode::Coast);
     reset();
@@ -32,6 +32,16 @@ void Hood::setPID(double p, double i, double d)
 double Hood::getHoodTicks()
 {
     return hoodMotor_.GetSelectedSensorPosition();
+}
+
+double Hood::getHoodVel()
+{
+    return hoodMotor_.GetSelectedSensorVelocity();
+}
+
+double Hood::getHoodWantedVel()
+{
+    return get<1>(trajectoryCalc_.getProfile());
 }
 
 bool Hood::isReady()
@@ -86,13 +96,14 @@ void Hood::zero()
 {
     hoodMotor_.SetVoltage(units::volt_t(1));
 
+    frc::SmartDashboard::PutNumber("HC", hoodMotor_.GetSupplyCurrent());
     if(hoodMotor_.GetSupplyCurrent() > ShooterConstants::HOOD_ZERO_CURRENT)
     {
         hoodMotor_.SetVoltage(units::volt_t(0));
-        reset();
+        hoodMotor_.SetSelectedSensorPosition(100);
+        zeroed_ = true;
         state_ = IMMOBILE;
     }
-    //TODO yeah, zeroed bool?
 }
 
 void Hood::setWantedPos(double setPos)
@@ -104,6 +115,9 @@ void Hood::setWantedPos(double setPos)
 void Hood::move()
 {
     double volts = calcPID();
+
+    //volts = inVolts_;
+
     //volts = frc::SmartDashboard::GetNumber("HINV", 0);
 
     /*double volts;
@@ -130,15 +144,36 @@ void Hood::move()
     {
         double pos = hoodMotor_.GetSelectedSensorPosition();
         double vel = hoodMotor_.GetSelectedSensorVelocity() * 10;
-        volts = trajectoryCalc_.calcPower(pos, vel) + ShooterConstants::HOOD_FF;
+        //volts = trajectoryCalc_.calcPower(pos, vel)// + ShooterConstants::HOOD_WEIGHT_FF;
+
+        tuple<double, double, double> profile = trajectoryCalc_.getProfile();
+
+        double profileVel = get<1>(profile);
+        double kVVolts;
+        if(profileVel < 0)
+        {
+            kVVolts = (profileVel - ShooterConstants::HOOD_NEG_FF_INTERCEPT) / ShooterConstants::HOOD_NEG_FF;
+        }
+        else if(profileVel > 0)
+        {
+            kVVolts = (profileVel - ShooterConstants::HOOD_POS_FF_INTERCEPT) / ShooterConstants::HOOD_POS_FF;
+        }
+        else
+        {
+            kVVolts = ShooterConstants::HOOD_WEIGHT_FF;
+        }
+
+        volts = ((get<2>(profile) - pos) * kP) + ((profileVel - vel) * kD) + kVVolts + (get<0>(profile) * kA);
+
     }
     else
     {
         volts = 0;
     }*/
-
-    //volts = -12;
-    //frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
+    
+    frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
+    //frc::SmartDashboard::PutNumber("HVEL", hoodMotor_.GetSelectedSensorVelocity());
+    
 
     if(hoodMotor_.GetSelectedSensorPosition() < ShooterConstants::MAX_HOOD_TICKS && volts < 0)
     {
@@ -152,7 +187,15 @@ void Hood::move()
     {
         hoodMotor_.SetVoltage(units::volt_t(volts));
     }
+    //hoodMotor_.SetVoltage(units::volt_t(volts));
     
+    //cout << volts << endl;
+    frc::SmartDashboard::PutNumber("HV", volts);
+}
+
+void Hood::setInVolts(double inVolts)
+{
+    inVolts_ = inVolts;
 }
 
 double Hood::calcPID()
@@ -160,8 +203,6 @@ double Hood::calcPID()
     double time = timer_.GetFPGATimestamp().value();
     dT_ = time - prevTime_;
     prevTime_ = time;
-
-    //frc::SmartDashboard::PutNumber("Ang", (hoodMotor_.GetSelectedSensorPosition() / ShooterConstants::TICKS_PER_HOOD_DEGREE) + ShooterConstants::MAX_HOOD_ANGLE);
 
     double error = setPos_ - hoodMotor_.GetSelectedSensorPosition();
 
@@ -175,10 +216,10 @@ double Hood::calcPID()
     prevError_ = error;
 
     double power = (kP_*error) + (kI_*integralError_) + (kD_*deltaError);
-    power += ShooterConstants::HOOD_FF;
+    power += ShooterConstants::HOOD_WEIGHT_FF;
 
     frc::SmartDashboard::PutNumber("HE", error);
-    //frc::SmartDashboard::PutNumber("HP", power);
+    frc::SmartDashboard::PutNumber("HP", power);
     return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);
 }
 
@@ -186,3 +227,15 @@ double Hood::angleToTicks(double angle)
 {
     return (angle - ShooterConstants::MAX_HOOD_ANGLE) * ShooterConstants::TICKS_PER_HOOD_DEGREE;
 }
+
+//-1, -8200
+//-2, -28500
+//-3, -46900
+//-4, -65600
+//-5, -83980
+//-6, -102900
+
+//-1, -5100
+//-2, -23000
+//-3, -42000
+//-4, -60000

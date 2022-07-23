@@ -18,8 +18,8 @@ class Turret
             IMMOBILE,
             TRACKING,
             UNLOADING,
-            MANUAL
-            //FLIPPING,
+            MANUAL,
+            CLIMB
         };
         State getState();
         void setState(State state);

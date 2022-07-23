@@ -10,6 +10,7 @@
 
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
+#include <frc/DriverStation.h>
 #include "AHRS.h"
 #include "Constants.h"
 #include "Controls.h"
@@ -39,8 +40,7 @@ public:
 
 private:
     frc::SendableChooser<AutoPaths::Path> autoChooser_;
-    frc::SendableChooser<Channel::Color> colorChooser_;
-
+    frc::DriverStation::Alliance alliance_;
 
     AHRS *navx_;
     Limelight* limelight_ = new Limelight();
@@ -54,10 +54,10 @@ private:
     AutoPaths autoPaths_;
 
     //TODO test, also make not a pointer
-    Logger* odometryLogger_ = new Logger(OutputConstants::odometryFile);
-    Logger* flywheelLogger_ = new Logger(OutputConstants::flywheelFile);
+    //Logger* odometryLogger_ = new Logger(OutputConstants::odometryFile);
+    //Logger* flywheelLogger_ = new Logger(OutputConstants::flywheelFile);
     Logger* hoodLogger_ = new Logger(OutputConstants::hoodFile);
-    Logger* turretLogger_ = new Logger(OutputConstants::turretFile);
+    //Logger* turretLogger_ = new Logger(OutputConstants::turretFile);
 
     frc::Timer timer;
 

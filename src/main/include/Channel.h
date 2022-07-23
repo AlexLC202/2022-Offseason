@@ -17,7 +17,6 @@ class Channel
         Color getColor();
 
         Channel();
-        //void periodic();
 
         int getBalls();
         bool badIdea();
@@ -26,7 +25,6 @@ class Channel
 
         static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
         rev::ColorSensorV3 colorSensor_{i2cPort};
-        //rev::ColorSensorV3 colorSensor_;
 
         Color color_;
 };
