@@ -67,10 +67,10 @@ double Controls::getYStrafe()
 
 double Controls::getTurn()
 {
-    if(manuallyOverrideTurret())
+    /*if(manuallyOverrideTurret())
     {
         return 0;
-    }
+    }*/
 
     double turn = rJoy_.GetRawAxis(InputConstants::RJOY_X);
     if(abs(turn) < 0.05) //TODO get value

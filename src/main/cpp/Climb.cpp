@@ -38,9 +38,9 @@ void Climb::setAutoState(AutoState autoState)
 void Climb::periodic(double roll)
 {
     roll_ = roll;
-    //frc::SmartDashboard::PutNumber("Roll", roll);
-    //double pos = gearboxMaster_.GetSelectedSensorPosition();
-    //frc::SmartDashboard::PutNumber("ClimbPos", pos);
+    frc::SmartDashboard::PutNumber("Roll", roll);
+    double pos = gearboxMaster_.GetSelectedSensorPosition();
+    frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     switch(state_)
     {
@@ -238,33 +238,35 @@ bool Climb::climbBar()
 {
     frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     
-    double currentSpike = 0;
+    //double currentSpike = 0;
     double volts = 0;
     if(autoState_ == CLIMB_LOW)
     {
-        currentSpike = ClimbConstants::LOW_STALL_CURRENT_SPIKE;
+        //currentSpike = ClimbConstants::LOW_STALL_CURRENT_SPIKE;
         volts = ClimbConstants::LOW_CLIMB_VOLTAGE;
     }
     else if(autoState_ == CLIMB_MID)
     {
-        currentSpike = ClimbConstants::MID_STALL_CURRENT_SPIKE;
+        //currentSpike = ClimbConstants::MID_STALL_CURRENT_SPIKE;
         volts = ClimbConstants::MID_CLIMB_VOLTAGE;
     }
     else if(autoState_ == CLIMB_HIGH)
     {
-        currentSpike = ClimbConstants::HIGH_STALL_CURRENT_SPIKE;
+        //currentSpike = ClimbConstants::HIGH_STALL_CURRENT_SPIKE;
         volts = ClimbConstants::HIGH_CLIMB_VOLTAGE;
     }
 
-    if(abs(gearboxMaster_.GetSelectedSensorPosition() - ClimbConstants::CLEAR_OF_BARS) < 5000)
+    /*if(abs(gearboxMaster_.GetSelectedSensorPosition() - ClimbConstants::CLEAR_OF_BARS) < 5000)
     {
         climbCurrents_.push_back(gearboxMaster_.GetSupplyCurrent());
+        cout << gearboxMaster_.GetSupplyCurrent() << endl;
         midCurrent_ = accumulate(climbCurrents_.begin(), climbCurrents_.end(), 0.0) / climbCurrents_.size();
-    }
+    }*/
 
-    frc::SmartDashboard::PutNumber("MID CUR", midCurrent_);
+    //frc::SmartDashboard::PutNumber("MID CUR", midCurrent_);
+    frc::SmartDashboard::PutNumber("CLIMB VEL", gearboxMaster_.GetSelectedSensorVelocity());
 
-    if(gearboxMaster_.GetSupplyCurrent() > (midCurrent_ + currentSpike) && gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::NEARING_HARDSTOP)
+    if(/*gearboxMaster_.GetSupplyCurrent() > (midCurrent_ + currentSpike)*/ abs(gearboxMaster_.GetSelectedSensorVelocity()) < 100 && gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::NEARING_HARDSTOP)
     {
         gearboxMaster_.SetVoltage(units::volt_t(0));
         bottomPos_ = gearboxMaster_.GetSelectedSensorPosition();
@@ -278,7 +280,16 @@ bool Climb::climbBar()
         return true;
     }
 
-    gearboxMaster_.SetVoltage(units::volt_t(volts)); //TODO get direction
+    if(gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::NEARING_HARDSTOP)
+    {
+        gearboxMaster_.SetVoltage(units::volt_t(ClimbConstants::SLOW_CLIMB_VOLTAGE));
+    }
+    else
+    {
+        gearboxMaster_.SetVoltage(units::volt_t(volts));
+    }
+
+    
     return false;
 }
 

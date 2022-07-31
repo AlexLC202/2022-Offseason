@@ -92,7 +92,7 @@ class Shooter
         //0.0001
 
         double yaw_;
-        bool unloadShooting_/*, unloadShot_*/;
+        bool unloadStarted_, unloadShooting_;
 
         map<double, tuple<double, double, double>> shotsMap_;
 

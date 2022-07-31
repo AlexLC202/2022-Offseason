@@ -3,6 +3,7 @@
 #include "vector"
 #include <frc/Timer.h>
 #include "TrajectoryPoint.h"
+#include "math.h"
 
 class SwervePath
 {
@@ -30,6 +31,7 @@ class SwervePath
         double MAX_LA, MAX_LV, MAX_AA, MAX_AV, klP_, klD_, kaP_, kaD_, klV_, klA_, kaV_, kaA_;
 
         std::vector<TrajectoryPoint> points_;
+        //std::vector<
         double numPoints_;
 
         frc::Timer timer_;

@@ -79,6 +79,8 @@ void SwerveModule::move(double driveSpeed, double angle)
     units::volt_t driveVolts{direction_ * calcDrivePID(driveSpeed)};
     driveMotor_.SetVoltage(driveVolts);
     //frc::SmartDashboard::PutNumber(id_ + " Drive volts", driveVolts.value());
+
+    frc::SmartDashboard::PutNumber(id_ + " SM", cancoder_.GetVelocity());
     
 }
 

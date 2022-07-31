@@ -60,11 +60,12 @@ class Turret
         bool aimed_, unloadReady_/*, foundGoal_*/;
         double prevYaw_, yaw_, offset_, /*robotGoalAng_, x_, y_, */unloadAngle_;
 
-        double prevTime_, dT_;
+        double prevTime_, dT_, deltaYaw_, yawDT_, yawPrevTime_, yawVel_;
         frc::Timer timer_;
 
         double prevError_, integralError_;
-        double tkP_ = 0.2; //TODO tune, tuned with physics only, could be more aggressive
+        double tkP_ = 0.25; //TODO tune, tuned with physics only, could be more aggressive
         double tkI_ = 0.0001;  //0.075, 0.0001, 0.000008
         double tkD_ = 0.000008;  //0.3, 0.0001, 0.00005
+        //0.2, 0.0001, 0.000008
 };

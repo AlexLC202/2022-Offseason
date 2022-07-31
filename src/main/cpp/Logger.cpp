@@ -4,6 +4,7 @@ Logger::Logger(string fileName)
 {
     fileName_ = fileName;
     open_ = false;
+    startTime_ = 0;
 }
 
 void Logger::openFile()
@@ -25,6 +26,10 @@ void Logger::closeFile()
 
 void Logger::addPrint(string print)
 {
+    if(startTime_ == 0)
+    {
+        startTime_ = timer_.GetFPGATimestamp().value();
+    }
     double time = timer_.GetFPGATimestamp().value() - startTime_;
     pair<double, string> printPair(time, print);
     prints_.push_back(printPair);
@@ -36,11 +41,14 @@ void Logger::print()
     outstream.open(fileName_, ofstream::out);
 
 
-    for(int i = 0; i < prints_.size(); ++i)
+    for(size_t i = 0; i < prints_.size(); ++i)
     {
+        cout << prints_[i].first << ", " << prints_[i].second << endl;
         outstream << prints_[i].first << ", " << prints_[i].second << endl;
     }
 
+    prints_.clear();
+    startTime_ = 0;
     outstream.close();
 }
 

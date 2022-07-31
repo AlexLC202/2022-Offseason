@@ -45,7 +45,7 @@ class Hood
 
         double maxV = 100000;
         double maxA = 500000;
-        double kP = 0;
+        double kP = 0.0001;
         double kD = 0;
         double kV = 1 / ShooterConstants::HOOD_NEG_FF;
         double kA = 0;
@@ -55,7 +55,7 @@ class Hood
         double setTrajectoryPos_;
 
         State state_;
-        bool zeroed_;
+        bool zeroed_, currentStopHit_;
         double setPos_, prevError_, integralError_;
         double kP_ = 0.0008; //TODO tune values
         double kI_ = 0.00;

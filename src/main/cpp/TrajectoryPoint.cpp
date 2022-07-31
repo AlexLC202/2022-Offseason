@@ -1,8 +1,8 @@
 #include "TrajectoryPoint.h"
 
-TrajectoryPoint::TrajectoryPoint(double x, double y, double yaw, double yawTime) : x_(x), y_(y), yaw_(yaw), yawTime_(yawTime)
+TrajectoryPoint::TrajectoryPoint(double x, double y, double yaw, double yawDist) : x_(x), y_(y), yaw_(yaw), yawDist_(yawDist)
 {
-    
+    Helpers::normalizeAngle(yaw);
 }
 
 double TrajectoryPoint::getX()
@@ -20,7 +20,7 @@ double TrajectoryPoint::getYaw()
     return yaw_;
 }
 
-double TrajectoryPoint::getYawTime()
+double TrajectoryPoint::getYawDist()
 {
-    return yawTime_;
+    return yawDist_;
 }

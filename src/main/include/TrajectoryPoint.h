@@ -1,15 +1,17 @@
 #pragma once
 
+#include "Helpers.h"
+
 class TrajectoryPoint
 {
     public:
-        TrajectoryPoint(double x, double y, double yaw, double yawTime);
+        TrajectoryPoint(double x, double y, double yaw, double yawDist);
 
         double getX();
         double getY();
         double getYaw();
-        double getYawTime();
+        double getYawDist();
     private:
-        double x_, y_, yaw_, yawTime_;
+        double x_, y_, yaw_, yawDist_;
 
 };

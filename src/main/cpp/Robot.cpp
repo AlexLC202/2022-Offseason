@@ -130,12 +130,14 @@ void Robot::TeleopInit()
     //hoodLogger_->openFile();
     //turretLogger_->openFile();
 
-    //frc::SmartDashboard::PutNumber("InV", 0);
-    //frc::SmartDashboard::PutNumber("InA", 0);
+    frc::SmartDashboard::PutNumber("InV", 0);
+    frc::SmartDashboard::PutNumber("InA", 0);
     //frc::SmartDashboard::PutNumber("InHV", 0);
     //frc::SmartDashboard::PutNumber("fKp", 0);
     //frc::SmartDashboard::PutNumber("HINV", 0);
     //frc::SmartDashboard::PutNumber("FINV", 0);
+    frc::SmartDashboard::PutNumber("InDist", 4.0);
+    frc::SmartDashboard::PutNumber("K", 2);
 
 }
 
@@ -276,9 +278,10 @@ void Robot::TeleopPeriodic()
     flywheel << shooter_->getFlyVel();
     flywheelLogger_->print(flywheel.str());*/
 
-    stringstream hood;
-    hood << shooter_->getHoodTicks() << ", " << shooter_->getHoodVel() << ", " << shooter_->getHoodWantedVel();
-    hoodLogger_->addPrint(hood.str());
+    //stringstream hood;
+    //hood << shooter_->getHoodTicks() << ", " << shooter_->getHoodVel() << ", " << shooter_->getHoodWantedVel();
+    //hood << shooter_->getHoodTicks() << ", " << shooter_->getHoodVel();
+    //hoodLogger_->addPrint(hood.str());
 
     //hoodLogger_->print(hood.str());
     //cout << shooter_->getHoodWantedVel() << ", " << shooter_->getHoodVel() * 10 << endl;
@@ -317,7 +320,7 @@ void Robot::DisabledInit()
     //hoodLogger_->closeFile();
     //turretLogger_->closeFile();
 
-    hoodLogger_->print();
+    //hoodLogger_->print();
 }
 
 void Robot::DisabledPeriodic() //TODO does this even do anything

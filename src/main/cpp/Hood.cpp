@@ -18,6 +18,7 @@ void Hood::setState(State state)
     if(state == ZEROING)
     {
         zeroed_ = false;
+        currentStopHit_ = false;
     }
     state_ = state;
 }
@@ -54,6 +55,7 @@ void Hood::periodic()
     if(!zeroed_)
     {
         state_ = ZEROING;
+        zeroed_ = false;
     }
 
     switch(state_)
@@ -88,44 +90,65 @@ void Hood::periodic()
 void Hood::reset()
 {
     zeroed_ = true;
+    currentStopHit_ = false;
     hoodMotor_.SetSelectedSensorPosition(0);
     initTrajectory_ = false;
 }
 
 void Hood::zero()
 {
-    hoodMotor_.SetVoltage(units::volt_t(1));
-
-    frc::SmartDashboard::PutNumber("HC", hoodMotor_.GetSupplyCurrent());
-    if(hoodMotor_.GetSupplyCurrent() > ShooterConstants::HOOD_ZERO_CURRENT)
+    frc::SmartDashboard::PutNumber("HCUR", hoodMotor_.GetSupplyCurrent());
+    frc::SmartDashboard::PutNumber("HOOD ZVEL", hoodMotor_.GetSelectedSensorVelocity());
+    frc::SmartDashboard::PutNumber("HOOD ZPOS", hoodMotor_.GetSelectedSensorPosition());
+    if(/*hoodMotor_.GetSelectedSensorVelocity() < 20*/hoodMotor_.GetSupplyCurrent() > ShooterConstants::HOOD_ZERO_CURRENT)
     {
         hoodMotor_.SetVoltage(units::volt_t(0));
-        hoodMotor_.SetSelectedSensorPosition(100);
-        zeroed_ = true;
-        state_ = IMMOBILE;
+        currentStopHit_ = true;
+        hoodMotor_.SetSelectedSensorPosition(0);
+        //hoodMotor_.SetSelectedSensorPosition(230); //TODO change to a constant
+        //zeroed_ = true;
+        //state_ = IMMOBILE;
+    }
+
+    if(currentStopHit_)
+    {
+        hoodMotor_.SetVoltage(units::volt_t(0));
+
+        if(abs(hoodMotor_.GetSelectedSensorVelocity()) < 5 && hoodMotor_.GetSelectedSensorPosition() < -10)
+        {
+            hoodMotor_.SetSelectedSensorPosition(0);
+            zeroed_ = true;
+            state_ = IMMOBILE;
+        }
+    }
+    else
+    {
+        hoodMotor_.SetVoltage(units::volt_t(1)); //TODO change to constant
     }
 }
 
 void Hood::setWantedPos(double setPos)
 {
-    setPos_ = setPos;
-    //setPos_ = angleToTicks(setPos);
+    //setPos_ = setPos;
+    setPos_ = angleToTicks(setPos);
 }
 
 void Hood::move()
 {
-    double volts = calcPID();
+    //double volts = calcPID();
 
     //volts = inVolts_;
 
     //volts = frc::SmartDashboard::GetNumber("HINV", 0);
 
-    /*double volts;
-    if(abs(setPos_ - setTrajectoryPos_) > 5 && initTrajectory_) //TODO get value
+    double volts;
+    if(abs(setPos_ - setTrajectoryPos_) > 10 && initTrajectory_) //TODO get value
     {
         setTrajectoryPos_ = setPos_;
-        double pos = get<2>(trajectoryCalc_.getProfile());
-        double vel = get<1>(trajectoryCalc_.getProfile());
+        //double pos = get<2>(trajectoryCalc_.getProfile());
+        //double vel = get<1>(trajectoryCalc_.getProfile());
+        double pos = hoodMotor_.GetSelectedSensorPosition();
+        double vel = hoodMotor_.GetSelectedSensorVelocity() * 10;
 
         trajectoryCalc_.generateTrajectory(pos, setPos_, vel);
     }
@@ -163,17 +186,32 @@ void Hood::move()
             kVVolts = ShooterConstants::HOOD_WEIGHT_FF;
         }
 
-        volts = ((get<2>(profile) - pos) * kP) + ((profileVel - vel) * kD) + kVVolts + (get<0>(profile) * kA);
+        if(get<1>(profile) == 00 && get<0>(profile) == 0)
+        {
+            volts = ((get<2>(profile) - pos) * kP_) + ShooterConstants::HOOD_WEIGHT_FF;
+        }
+        else
+        {
+            volts = ((get<2>(profile) - pos) * kP) + ((profileVel - vel) * kD) + kVVolts + (get<0>(profile) * kA);
+        }
+        
 
     }
     else
     {
         volts = 0;
-    }*/
+    }
     
     frc::SmartDashboard::PutNumber("Ang Ticks", hoodMotor_.GetSelectedSensorPosition());
-    //frc::SmartDashboard::PutNumber("HVEL", hoodMotor_.GetSelectedSensorVelocity());
+    frc::SmartDashboard::PutNumber("HVEL", hoodMotor_.GetSelectedSensorVelocity());
     
+    //0, 100-120
+    //0.5, 540
+    //1, 1250
+    //1.5, 2150
+    //2, 3060
+    //2.5, 3600
+
 
     if(hoodMotor_.GetSelectedSensorPosition() < ShooterConstants::MAX_HOOD_TICKS && volts < 0)
     {
