@@ -29,7 +29,9 @@ double Controls::getXStrafe()
     {
         return 0;
     }
-    return (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
+    x = (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
+    return x;
+    //return (shootPressed()) ? x * 0.25 : x;
 
     /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
     {
@@ -53,7 +55,9 @@ double Controls::getYStrafe()
     {
         return 0;
     }
-    return (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
+    y = (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
+    return y;
+    //return (shootPressed()) ? y * 0.25 : y;
 
     /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
     {
@@ -77,7 +81,10 @@ double Controls::getTurn()
     {
         return 0;
     }
-    return (turn > 0) ? ((turn - 0.05) / 0.95) * 0.3 : ((turn + 0.05) / 0.95) * 0.3;
+    turn = (turn > 0) ? ((turn - 0.05) / 0.95) * 0.3 : ((turn + 0.05) / 0.95) * 0.3;
+
+    return turn;
+    //return (shootPressed()) ? turn * 0.1 : turn;
 }
 
 bool Controls::fieldOrient()
@@ -138,20 +145,26 @@ bool Controls::decreaseRange()
 
 double Controls::getTurretManual()
 {
-    /*if(abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X)) > 0.3)
+    /*if(abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X)) > 0.2)
     {
         if(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) > 0)
         {
-            return 1;
+            return frc::SmartDashboard::GetNumber("ITV", 0.0);
         }
         else
         {
-            return -1;
+            return -frc::SmartDashboard::GetNumber("ITV", 0.0);
         }
     }*/
 
     return xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) * 0.3 * GeneralConstants::MAX_VOLTAGE;
 }
+//0,7 0
+//0.8, 100
+//1, 420
+//2, 2280
+//3, 4200
+//4, 6100
 
 bool Controls::resetUnload()
 {
@@ -162,4 +175,14 @@ bool Controls::resetUnload()
 bool Controls::manuallyOverrideTurret()
 {
     return xbox_.GetRawAxis(InputConstants::XBOX_RTRIGGER) > 0.75;
+}
+
+double Controls::getHood()
+{
+    return abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_Y)) * ShooterConstants::MAX_HOOD_TICKS;
+}
+
+double Controls::getTurret()
+{
+    return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_X) * 90;
 }

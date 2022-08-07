@@ -38,6 +38,9 @@ class Controls
         bool resetUnload();
         bool manuallyOverrideTurret();
 
+        double getHood();
+        double getTurret();
+
     private:
         bool climbMode_;
 

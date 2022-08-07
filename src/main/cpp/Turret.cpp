@@ -1,11 +1,12 @@
 #include "Turret.h"
 
-Turret::Turret(Limelight* limelight, SwerveDrive* swerveDrive) : turretMotor_(ShooterConstants::TURRET_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
+Turret::Turret(Limelight* limelight, SwerveDrive* swerveDrive) : turretMotor_(ShooterConstants::TURRET_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA, kVI)
 {
     turretMotor_.SetNeutralMode(NeutralMode::Coast);
     reset();
     limelight_ = limelight;
     swerveDrive_ = swerveDrive;
+    currentSetPos_ = 0;
 
     state_ = IDLE;
 }
@@ -49,10 +50,11 @@ void Turret::periodic(double yaw, double offset)
         case MANUAL:
         {
             turretMotor_.SetVoltage(units::volt_t(manualVolts_));
-            //frc::SmartDashboard::PutNumber("TPOS", getAngle());
-            frc::SmartDashboard::PutNumber("TANG", getAngle());
-            calcError(); //TODO remove, just for printing values
+            frc::SmartDashboard::PutNumber("TX", limelight_->getAdjustedX());
+            //frc::SmartDashboard::PutNumber("TANG", getAngle());
+            //calcError(); //TODO remove, just for printing values
             limelight_->lightOn(true);
+            //frc::SmartDashboard::PutNumber("TV", turretMotor_.GetSelectedSensorVelocity());
             break;
         }
         case CLIMB:
@@ -105,41 +107,110 @@ void Turret::reset()
 
 void Turret::track()
 {
-    if(!limelight_->hasTarget() && !swerveDrive_->foundGoal())
+    if(!limelight_->hasTarget() && !swerveDrive_->foundGoal() && false)
     {
         turretMotor_.SetVoltage(units::volt_t(0));
         limelight_->lightOn(true);
     }
     else
     {
-        double volts = calcPID();
+        //double volts = calcPID();
 
-        /*double volts;
+        double time = timer_.GetFPGATimestamp().value();
+        dT_ = time - prevTime_;
+        yawDT_ = time - yawPrevTime_;
+
+        prevTime_ = time;
+
+        deltaYaw_ = yaw_ - prevYaw_;
+        //cout << "yaws: " << yaw_ << ", " << prevYaw_ << ", " << deltaYaw_ << "," << yawVel_ << endl;
+
+        if(deltaYaw_ != 0)
+        {
+            prevYaw_ = yaw_;
+
+            if(abs(deltaYaw_) > 300)
+            {
+                deltaYaw_ = (deltaYaw_ > 0) ? deltaYaw_ - 360 : deltaYaw_ + 360;
+            }
+
+            yawVel_ = deltaYaw_ / yawDT_;
+            yawPrevTime_ = time;
+        }
+
+        double volts;
         double error = calcError();
-
-        //double inPos = frc::SmartDashboard::GetNumber("InT", getAngle());
-        //Helpers::normalizeAngle(setPos);
-        //error = inPos - getAngle();
+        frc::SmartDashboard::PutNumber("TE", error);
 
         double pos = getAngle();
-        double setPos = pos + error;
-        double vel = turretMotor_.GetSelectedSensorVelocity() * 10 / ShooterConstants::TICKS_PER_TURRET_DEGREE;
-        if(initTrajectory_)
-        {
-            pos = get<2>(trajectoryCalc_.getProfile());
-            vel = get<1>(trajectoryCalc_.getProfile());
-            trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+        frc::SmartDashboard::PutNumber("TP", pos);
 
-            volts = trajectoryCalc_.calcPower(pos, vel);
+        double vel = turretMotor_.GetSelectedSensorVelocity() * 10 / ShooterConstants::TICKS_PER_TURRET_DEGREE;
+        frc::SmartDashboard::PutNumber("TV", vel);
+        
+        double setPos = pos + error;
+        if(abs(setPos > 180))
+        {
+            frc::SmartDashboard::PutBoolean("THING DIED", true);
+        }
+        frc::SmartDashboard::PutNumber("TSP", setPos);
+
+        //double inPos = frc::SmartDashboard::GetNumber("InT", getAngle());
+        //Helpers::normalizeAngle(inPos);
+
+        //error = inPos_ - getAngle();
+        //setPos = inPos_;
+        
+        //initTrajectory_ = false;
+        double wantedVel, wantedPos;
+        if(initTrajectory_ && abs(setPos - currentSetPos_) < 5) //Reduce to like 1
+        {
+            /*double acc = get<0>(trajectoryCalc_.getProfile());
+            wantedVel = get<1>(trajectoryCalc_.getProfile());
+            if(abs(error) > ShooterConstants::TURRET_AIMED && wantedVel == 0 && acc == 0)
+            {
+                trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+            }*/
+            /*else
+            {
+                trajectoryCalc_.generateTrajectory(wantedPos, setPos, wantedVel);
+            }*/
         }
         else
         {
             initTrajectory_ = true;
-            volts = 0;
-            trajectoryCalc_.generateTrajectory(pos, setPos, vel);
-            volts = trajectoryCalc_.calcPower(pos, vel);
-        }*/
+            currentSetPos_ = setPos;
 
+            trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+        }
+
+        //TODO clean all the stuff above up... like man
+
+        wantedPos = get<2>(trajectoryCalc_.getProfile());
+        wantedVel = get<1>(trajectoryCalc_.getProfile());
+
+        if(abs(wantedVel) == 0)
+        {
+            volts = 0;
+        }
+        else
+        {
+            double ff = (abs(wantedVel) - ShooterConstants::TURRET_FF_INTERCEPT) / ShooterConstants::TURRET_FF;
+            if(vel < 0)
+            {
+                ff *= -1;
+            }
+            volts = ff;
+        }
+
+        //double cpVolts = trajectoryCalc_.calcPower(pos, vel);
+        //cout << volts << ", " << cpVolts << endl;
+
+        if(state_ != CLIMB && abs(getAngle()) < 178)
+        {
+            //volts += calcAngularFF();
+            //volts += calcLinearFF();
+        }
 
         //frc::SmartDashboard::PutNumber("T Volts", volts);
         if(volts > 0 && (turretMotor_.GetSelectedSensorPosition() > (180 * ShooterConstants::TICKS_PER_TURRET_DEGREE)))
@@ -199,14 +270,25 @@ void Turret::calcUnloadAng()
 double Turret::calcAngularFF()
 {
     //frc::SmartDashboard::PutNumber("PYAW", prevYaw_);
-    double ff = -yawVel_ / ShooterConstants::TURRET_FF;
+    double rff = -yawVel_ / 82;
 
-    double radPerSec = -(yawVel_ * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
-    double rff = radPerSec / GeneralConstants::Kv; //TODO tune
+    if(abs(yawVel_) < 5)
+    {
+        return 0;
+    }
+
+    double ff = -(abs(yawVel_) - ShooterConstants::TURRET_FF_INTERCEPT) / ShooterConstants::TURRET_FF;
+    if(yawVel_ < 0)
+    {
+        ff *= -1;
+    }
+
+    //double radPerSec = -(yawVel_ * ShooterConstants::TICKS_PER_TURRET_DEGREE * 2 * M_PI) / GeneralConstants::TICKS_PER_ROTATION;
+    //double rff = radPerSec / GeneralConstants::Kv; //TODO tune
 
     //frc::SmartDashboard::PutNumber("YAW3", yaw_);
-    frc::SmartDashboard::PutNumber("DYAW", deltaYaw_);
-    frc::SmartDashboard::PutNumber("TFF", ff);
+    //frc::SmartDashboard::PutNumber("DYAW", deltaYaw_);
+    //frc::SmartDashboard::PutNumber("TFF", ff);
     //frc::SmartDashboard::PutNumber("{TFF", rff);
     //return 0;
 
@@ -223,15 +305,25 @@ double Turret::calcLinearFF()
     //double radPerSec = (-vel / distance) * 360 * ShooterConstants::TICKS_PER_TURRET_DEGREE / GeneralConstants::TICKS_PER_ROTATION;
 
     double degPerSec = (-vel / distance) * 180 / M_PI;
+    if(abs(degPerSec) < 5)
+    {
+        return 0;
+    }
 
-    return degPerSec / ShooterConstants::TURRET_FF;
+    double ff = (abs(degPerSec) - ShooterConstants::TURRET_FF_INTERCEPT) / ShooterConstants::TURRET_FF;
+    if(degPerSec < 0)
+    {
+        ff *= -1;
+    }
+
+    return ff * 0.5;
     //return radPerSec / GeneralConstants::Kv; //TODO tune
 }
 
 double Turret::calcError()
 {
     double error, goalError;
-    if(state_ == UNLOADING) //TJRIOEWFOISA FEW FIOEWJOO FKJ<MDNSOFL KJE
+    if(state_ == UNLOADING)
     {
         error = unloadAngle_ - getAngle();
     }
@@ -330,15 +422,22 @@ double Turret::calcPID()
         return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);   
     }
 
-    power = std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.5, (double)GeneralConstants::MAX_VOLTAGE * 0.5);
+    power = std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3);
+    //power = 0;
     power += calcAngularFF();
-    //power += calcLinearFF();
+    power += calcLinearFF();
     //frc::SmartDashboard::PutNumber("LTFF", calcLinearFF());
 
     //TODO, disable voltage limit for ffs... like what?
 
     return power;
     //return std::clamp(power, -(double)GeneralConstants::MAX_VOLTAGE * 0.3, (double)GeneralConstants::MAX_VOLTAGE * 0.3); //TODO get cap value
+}
+
+void Turret::setInPos(double pos)
+{
+    inPos_ = pos;
+    Helpers::normalizeAngle(inPos_);
 }
 
 //1, 24

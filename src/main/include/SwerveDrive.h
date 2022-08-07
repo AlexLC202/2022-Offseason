@@ -6,6 +6,7 @@
 #include "Controls.h"
 #include "Constants.h"
 #include "Limelight.h"
+#include "SwervePose.h"
 
 #include "SwerveModule.h"
 
@@ -20,6 +21,7 @@ class SwerveDrive
         
         void periodic(double yaw, Controls* controls);
         void drive(double xSpeed, double ySpeed, double turn);
+        void drivePose(double yaw, SwervePose pose);
 
         void calcModules(double xSpeed, double ySpeed, double turn);
 

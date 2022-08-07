@@ -26,13 +26,15 @@ namespace GeneralConstants
     const double HANGAR_X = -4; //-4, -8
     const double HANGAR_Y = -8;
 
+    const int MAX_BALL_COUNT = 2;
+
 }
 
 namespace LimelightConstants
 {
-    const double ANGLE_OFFSET = 45; //49.5 from 0 at top (90-49.5), 30
+    const double ANGLE_OFFSET = 32; //49.5 from 0 at top (90-49.5), 30
     const double HEIGHT_OFFSET = 0.7874; //0.533, 0.7874
-    const double TURRET_ANGLE_OFFSET = 4.5; //5.0, 4?
+    const double TURRET_ANGLE_OFFSET = 7; //5.0, 4?
     const double TURRET_CENTER_RADIUS = 0.229; //TODO get value
     const double ROBOT_TURRET_CENTER_DISTANCE = 0.1524; //TODO get value
     const double LIMELIGHT_TO_BALL_CENTER_DIST = -0.2032; //TODO get more precise, -0.1145, -0.2032?
@@ -114,6 +116,11 @@ namespace SwerveConstants
     const double BR_CANCODER_OFFSET = 17.5 + 180;
     const double BL_CANCODER_OFFSET = 176.39 + 180;
 
+    const double MAX_LA = 1;
+    const double MAX_LV = 2;
+    const double MAX_AA = 180;
+    const double MAX_AV = 360;
+
 }
 
 namespace IntakeConstants
@@ -188,18 +195,20 @@ namespace ShooterConstants
 
     const double FLYWHEEL_FF = 1703;
     const double FLYWHEEL_FF_INTERCEPT = -750;
-    const double TURRET_FF = 82;
+    const double TURRET_FF = 106.583; //82
+    const double TURRET_FF_INTERCEPT = -79.5229;
 
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
     const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots.csv";
+    const string LOW_ANGLE_SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots_low_angle.csv";
     const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
     const int FLYWHEEL_READY = 330;
     const int FLYWHEEL_EJECT_READY = 500;
     const int HOOD_READY = 200;
-    const int TURRET_AIMED = 3;
+    const int TURRET_AIMED = 4;
     const int TURRET_UNLOAD_AIMED = 7;
 
     const double KICKER_VOLTS = 2;
@@ -219,4 +228,6 @@ namespace ChannelConstants
     const double BLUE_R = 0;
     const double BLUE_G = 0;
     const double BLUE_B = 255;
+
+    const int BALL_PROXIMITY = 310;
 }

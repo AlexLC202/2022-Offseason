@@ -42,6 +42,13 @@ void SwerveDrive::drive(double xSpeed, double ySpeed, double turn)
 
 }
 
+void SwerveDrive::drivePose(double yaw, SwervePose pose)
+{
+    setYaw(yaw);
+
+
+}
+
 void SwerveDrive::calcModules(double xSpeed, double ySpeed, double turn)
 {
     double angle = yaw_ * M_PI / 180;
@@ -107,8 +114,8 @@ void SwerveDrive::calcOdometry(double turretAngle)
     double avgX = (frX + flX + brX + blX) / 4;
     double avgY = (frY + flY + brY + blY) / 4;
 
-    frc::SmartDashboard::PutNumber("XVEL", avgX);
-    frc::SmartDashboard::PutNumber("YVEL", avgY);
+    //frc::SmartDashboard::PutNumber("XVEL", avgX);
+    //frc::SmartDashboard::PutNumber("YVEL", avgY);
 
     double angle = yaw_ * M_PI / 180;
     
@@ -186,7 +193,7 @@ void SwerveDrive::calcOdometry(double turretAngle)
     frc::SmartDashboard::PutNumber("x", x_);
     frc::SmartDashboard::PutNumber("y", y_);
 
-    frc::SmartDashboard::PutNumber("RGA", robotGoalAngle_);
+    //frc::SmartDashboard::PutNumber("RGA", robotGoalAngle_);
     goalXVel_ = avgX * cos(robotGoalAngle_ * M_PI / 180) + avgY * sin(robotGoalAngle_ * M_PI / 180);
     goalYVel_ = avgX * -sin(robotGoalAngle_ * M_PI / 180) + avgY * cos(robotGoalAngle_ * M_PI / 180);
 

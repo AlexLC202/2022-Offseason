@@ -38,9 +38,9 @@ void Climb::setAutoState(AutoState autoState)
 void Climb::periodic(double roll)
 {
     roll_ = roll;
-    frc::SmartDashboard::PutNumber("Roll", roll);
+    //frc::SmartDashboard::PutNumber("Roll", roll);
     double pos = gearboxMaster_.GetSelectedSensorPosition();
-    frc::SmartDashboard::PutNumber("ClimbPos", pos);
+    //frc::SmartDashboard::PutNumber("ClimbPos", pos);
 
     switch(state_)
     {
@@ -89,7 +89,7 @@ void Climb::togglePneumatic2()
 void Climb::extendArms(double power)
 {
     //frc::SmartDashboard::PutNumber("CP", gearboxMaster_.GetSelectedSensorPosition());
-    frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
+    //frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     gearboxMaster_.SetVoltage(units::volt_t(power)); //TODO check if slave motor spins as well
 }
 
@@ -236,7 +236,7 @@ void Climb::readyNextStage()
 
 bool Climb::climbBar()
 {
-    frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
+    //frc::SmartDashboard::PutNumber("CC", gearboxMaster_.GetSupplyCurrent());
     
     //double currentSpike = 0;
     double volts = 0;

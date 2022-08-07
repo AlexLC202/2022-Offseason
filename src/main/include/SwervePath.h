@@ -1,9 +1,13 @@
 #pragma once
 
 #include "vector"
-#include <frc/Timer.h>
-#include "TrajectoryPoint.h"
+#include "SwerveTrajectory.h"
+#include "SwervePose.h"
+#include "Helpers.h"
 #include "math.h"
+#include "iostream"
+
+using namespace std;
 
 class SwervePath
 {
@@ -22,18 +26,16 @@ class SwervePath
         void generateTrajectory(bool spline);
         void generateLinearTrajectory();
         void generateSplineTrajectory();
-        void addPoint(TrajectoryPoint point);
+        void addPoint(SwervePose point);
 
-        std::tuple<double, double, double> getPosition();
-        std::pair<double, double> getVelocity();
+        SwervePose getPose(double time, bool& end);
+
+        //tuple<double, double, double> getPosition();
+        //pair<double, double> getVelocity();
 
     private:
         double MAX_LA, MAX_LV, MAX_AA, MAX_AV, klP_, klD_, kaP_, kaD_, klV_, klA_, kaV_, kaA_;
 
-        std::vector<TrajectoryPoint> points_;
-        //std::vector<
-        double numPoints_;
-
-        frc::Timer timer_;
-
+        vector<SwervePose> points_;
+        vector<SwerveTrajectory> trajectories_;
 };

@@ -1,6 +1,6 @@
 #include "Shooter.h"
 
-Shooter::Shooter(Limelight* limelight, SwerveDrive* swerveDrive) : limelight_(limelight), swerveDrive_(swerveDrive), flywheelMaster_(ShooterConstants::FLYWHEEL_MASTER_ID), flywheelSlave_(ShooterConstants::FLYWHEEL_SLAVE_ID), kickerMotor_(ShooterConstants::KICKER_ID), flyTrajectoryCalc_(maxV, maxA, kP, kD, kV, kA), turret_(limelight_, swerveDrive_)
+Shooter::Shooter(Limelight* limelight, SwerveDrive* swerveDrive, Channel* channel) : limelight_(limelight), swerveDrive_(swerveDrive), channel_(channel), flywheelMaster_(ShooterConstants::FLYWHEEL_MASTER_ID), flywheelSlave_(ShooterConstants::FLYWHEEL_SLAVE_ID), kickerMotor_(ShooterConstants::KICKER_ID), flyTrajectoryCalc_(maxV, maxA, kP, kD, kV, kA), turret_(limelight_, swerveDrive_)
 {
     flywheelMaster_.SetInverted(TalonFXInvertType::Clockwise);
     flywheelSlave_.Follow(flywheelMaster_);
@@ -11,17 +11,21 @@ Shooter::Shooter(Limelight* limelight, SwerveDrive* swerveDrive) : limelight_(li
 
     unloadStarted_ = false;
     unloadShooting_ = false;
+    shootStarted_ = false;
+    shooting_ = false;
 
-    createMap();
+    createMap(ShooterConstants::SHOTS_FILE_NAME, shotsMap_);
+    createMap(ShooterConstants::LOW_ANGLE_SHOTS_FILE_NAME, lowAngleShotsMap_);
+    hasMaps_ = true;
 }
 
-void Shooter::createMap()
+void Shooter::createMap(string fileName, map<double, tuple<double, double, double>> &map)
 {
-    if(hasMap_)
+    if(hasMaps_)
     {
         return;
     }
-    ifstream infile(ShooterConstants::SHOTS_FILE_NAME);
+    ifstream infile(fileName);
     
     cout << "started creating a map" << endl;
 
@@ -74,11 +78,12 @@ void Shooter::createMap()
 
             shotsMap_.insert(distancePoint);
             ++mapPoints_;
-            cout << "added a point" << endl;
+            //cout << "added a point" << endl;
         }
     }
 
-    hasMap_ = true;
+    //hasMap_ = true;
+    //frc::SmartDashboard::PutNumber("Map Points", mapPoints_);
     infile.close();
 }
 
@@ -129,6 +134,11 @@ void Shooter::setTurretManualVolts(double manualVolts)
     turret_.setManualVolts(manualVolts);
 }
 
+void Shooter::setTurretPos(double turretPos)
+{
+    turret_.setInPos(turretPos);
+}
+
 double Shooter::getHoodTicks()
 {
     return hood_.getHoodTicks();
@@ -152,6 +162,12 @@ double Shooter::getTurretAngle()
 double Shooter::getFlyVel()
 {
     return flywheelMaster_.GetSelectedSensorVelocity();
+}
+
+void Shooter::clearBallShooting()
+{
+    shootStarted_ = false;
+    shooting_ = false;
 }
 
 void Shooter::periodic(double yaw)
@@ -208,12 +224,26 @@ void Shooter::periodic(double yaw)
         --shot;
         partDer = get<2>(shot->second);
 
-        swerveDrive_->getGoalXVel();
-        swerveDrive_->getGoalYVel();
+        //swerveDrive_->getGoalXVel();
+        //swerveDrive_->getGoalYVel();
         tuple<double, double, double> shotVals = calcShootingWhileMoving(get<0>(shot->second), get<1>(shot->second), swerveDrive_->getGoalXVel(), swerveDrive_->getGoalYVel());
         hoodAngle = get<0>(shotVals);
         velocity = get<1>(shotVals);
         turretOffset = get<2>(shotVals);
+
+        /*if(swerveDrive_->getGoalYVel() > 0.4 && state_ == REVING)
+        {
+            auto lowAngleShot = lowAngleShotsMap_.upper_bound(distance);
+            if(lowAngleShot != lowAngleShotsMap_.begin() && lowAngleShot != lowAngleShotsMap_.end())
+            {
+                --lowAngleShot;
+                partDer = get<2>(lowAngleShot->second);
+                shotVals = calcShootingWhileMoving(get<0>(lowAngleShot->second), get<1>(lowAngleShot->second), swerveDrive_->getGoalXVel(), swerveDrive_->getGoalYVel());
+                hoodAngle = get<0>(shotVals);
+                velocity = get<1>(shotVals);
+                turretOffset = get<2>(shotVals);
+            }
+        }*/
 
         /*hoodAngle = get<0>(shot->second);
         velocity = get<1>(shot->second);
@@ -228,7 +258,7 @@ void Shooter::periodic(double yaw)
 
         frc::SmartDashboard::PutNumber("MAng", hoodAngle);
         frc::SmartDashboard::PutNumber("MVel", velocity);
-        //frc::SmartDashboard::PutNumber("MTOff", turretOffset);
+        frc::SmartDashboard::PutNumber("MTOff", turretOffset);
     }
     else
     {
@@ -242,7 +272,7 @@ void Shooter::periodic(double yaw)
 
     //frc::SmartDashboard::PutNumber("V", flywheelMaster_.GetSelectedSensorVelocity() * 20 * M_PI * ShooterConstants::FLYWHEEL_RADIUS / (GeneralConstants::TICKS_PER_ROTATION * ShooterConstants::FLYWHEEL_GEAR_RATIO));
 
-    if(partDer > 0.5)
+    if(partDer > 10.5) //Change back to 0.5, maybe lower to 0.3
     {
         hasShot_ = false; //TODO set value, see how auto shoot works?
     }
@@ -269,7 +299,7 @@ void Shooter::periodic(double yaw)
     frc::SmartDashboard::PutBoolean("Hood Ready", hood_.isReady());
     frc::SmartDashboard::PutBoolean("Flywheel Ready", flywheelReady_);
     frc::SmartDashboard::PutBoolean("Turret Ready", turret_.isAimed());
-    //frc::SmartDashboard::PutBoolean("Has Shot", hasShot_);
+    frc::SmartDashboard::PutBoolean("Has Shot", hasShot_);
 
     //hasShot_ = true;
     shotReady_ = (flywheelReady_ && hood_.isReady() && turret_.isAimed() && hasShot_); //TODO something with have ball?
@@ -277,7 +307,7 @@ void Shooter::periodic(double yaw)
     //frc::SmartDashboard::PutBoolean("badIdea", channel_.badIdea());
     
     //TODO remove, testing
-    double kickerVel = frc::SmartDashboard::GetNumber("K", ShooterConstants::KICKER_VOLTS);
+    //double kickerVel = frc::SmartDashboard::GetNumber("K", ShooterConstants::KICKER_VOLTS);
     //velocity = frc::SmartDashboard::GetNumber("InV", 0);
     //velocity = std::clamp(velocity, 0.0, ShooterConstants::MAX_VELOCITY);
     //hoodAngle = frc::SmartDashboard::GetNumber("InA", 0);
@@ -288,8 +318,27 @@ void Shooter::periodic(double yaw)
     //turretOffset = 0;
     frc::SmartDashboard::PutBoolean("Unloading", (state_ == UNLOADING));
 
+    /*if(channel_->getBallCount() > 0 && shootStarted_)
+    {
+        state_ = REVING;
+    }*/
+
     switch(state_)
     {
+        case OUTAKING:
+        {
+            hood_.setWantedPos(hoodAngle);
+            hood_.setState(Hood::AIMING);
+            
+            turret_.setState(Turret::TRACKING);
+            //turret_.setState(Turret::MANUAL);
+
+            flywheelMaster_.SetVoltage(units::volt_t (0));
+            kickerMotor_.SetVoltage(units::volt_t(-6));
+            dewindIntegral();
+
+            break;
+        }
         case IDLE:
         {
             hood_.setState(Hood::IDLE);
@@ -309,6 +358,11 @@ void Shooter::periodic(double yaw)
             flywheelMaster_.SetVoltage(units::volt_t (0));
             kickerMotor_.SetVoltage(units::volt_t(0));
             dewindIntegral();
+
+            //unloadStarted_ = false;
+            //unloadShooting_ = false;
+            shootStarted_ = false;
+            shooting_ = false;
             break;
         }
         case REVING: //TODO combine for auto shoot later, hood anti-windup
@@ -331,7 +385,7 @@ void Shooter::periodic(double yaw)
 
             flywheelMaster_.SetVoltage(volts);
             
-            frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
+            //frc::SmartDashboard::PutNumber("FV", flywheelMaster_.GetSelectedSensorVelocity());
             //1, 580
             //2, 2310
             //3, 4090
@@ -361,12 +415,25 @@ void Shooter::periodic(double yaw)
             if(shotReady_)
             {
                 //frc::SmartDashboard::PutBoolean("Shooting", true);
-                kickerMotor_.SetVoltage(units::volt_t(kickerVel)); //TODO tune value
+                shootStarted_ = true;
+                kickerMotor_.SetVoltage(units::volt_t(ShooterConstants::KICKER_VOLTS)); //TODO tune value
             }
             else
             {
                 //frc::SmartDashboard::PutBoolean("Shooting", false);
                 kickerMotor_.SetVoltage(units::volt_t(0));
+            }
+
+            if(shootStarted_ && flywheelMaster_.GetSelectedSensorVelocity() < (wantedSensVel_ - 1000)/*flywheelMaster_.GetSupplyCurrent() > ShooterConstants::UNLOADING_CURRENT*/)
+            {
+                shooting_ = true;
+            }
+
+            if(shooting_ && flywheelMaster_.GetSelectedSensorVelocity() > (wantedSensVel_ - 500)/*flywheelMaster_.GetSupplyCurrent() < ShooterConstants::UNLOADING_CURRENT_LOW*/)
+            {
+                shootStarted_ = false;
+                shooting_ = false;
+                channel_->decreaseBallCount();
             }
             break;
         }
@@ -405,6 +472,7 @@ void Shooter::periodic(double yaw)
                 state_ = TRACKING;
                 unloadStarted_ = false;
                 unloadShooting_ = false;
+                channel_->decreaseBallCount();
             }
 
             break;
@@ -429,6 +497,7 @@ void Shooter::periodic(double yaw)
 
     hood_.periodic();
     turret_.periodic(yaw_, turretOffset);
+    channel_->periodic();
 }
 
 void Shooter::reset()
@@ -452,7 +521,8 @@ double Shooter::linVelToSensVel(double velocity)
 {
     //a = 66.0934, b = -73.0616, c = 3734.77
     
-    return (66.0934 * velocity * velocity) - (73.0616 * velocity) + 3734.77;
+    wantedSensVel_ = (66.0934 * velocity * velocity) - (73.0616 * velocity) + 3734.77;
+    return wantedSensVel_;
 
     //return ShooterConstants::FLYWHEEL_GEAR_RATIO * (velocity / ShooterConstants::FLYWHEEL_RADIUS) * GeneralConstants::TICKS_PER_ROTATION / ( 20 * M_PI);
 }

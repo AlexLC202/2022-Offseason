@@ -74,13 +74,14 @@ void SwerveModule::move(double driveSpeed, double angle)
 
     units::volt_t turnVolts{calcAngPID(angle)};
     turnMotor_.SetVoltage(turnVolts);
+    //turnMotor_.SetVoltage(units::volt_t(frc::SmartDashboard::GetNumber("smiv", 0)));
     //frc::SmartDashboard::PutNumber(id_ + " Turn volts", turnVolts.value());
 
     units::volt_t driveVolts{direction_ * calcDrivePID(driveSpeed)};
     driveMotor_.SetVoltage(driveVolts);
     //frc::SmartDashboard::PutNumber(id_ + " Drive volts", driveVolts.value());
 
-    frc::SmartDashboard::PutNumber(id_ + " SM", cancoder_.GetVelocity());
+    //frc::SmartDashboard::PutNumber(id_ + " VEL", cancoder_.GetVelocity());
     
 }
 
@@ -143,8 +144,9 @@ double SwerveModule::calcDrivePID(double driveSpeed)
         dIntegralError_ = 0;
     }
 
-    double radPSec = (driveSpeed * GeneralConstants::MAX_RPM) * 2 * M_PI / 60;
-    double feedForward = radPSec / GeneralConstants::Kv;
+    //double radPSec = (driveSpeed * GeneralConstants::MAX_RPM) * 2 * M_PI / 60;
+    //double feedForward = radPSec / GeneralConstants::Kv;
+    double feedForward = GeneralConstants::MAX_VOLTAGE * driveSpeed;
     //feedForward = 0;
 
     double power = (dkP_*error) + (dkI_*aIntegralError_) + (dkD_*deltaError) + feedForward;

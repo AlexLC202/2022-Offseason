@@ -2,7 +2,31 @@
 
 Channel::Channel()
 {
+    ballCount_ = 0;
+    seeingBall_ = false;
+}
 
+void Channel::periodic()
+{
+    int proximity = colorSensor_.GetProximity();
+    if(!seeingBall_ && proximity > ChannelConstants::BALL_PROXIMITY)
+    {
+        increaseBallCount();
+        seeingBall_ = true;
+    }
+
+    if(seeingBall_ && proximity < ChannelConstants::BALL_PROXIMITY)
+    {
+        seeingBall_ = false;
+    }
+
+    frc::SmartDashboard::PutNumber("Ball Count", ballCount_);
+
+    /*if(ballCount_ == 0 && proximity > ChannelConstants::BALL_PROXIMITY)
+    {
+        ballCount_ = 1;
+    }*/
+    //see if this happens enough to merit this clause
 }
 
 void Channel::setColor(Color color)
@@ -18,7 +42,7 @@ Channel::Color Channel::getColor()
 bool Channel::badIdea()
 {
     frc::Color color = colorSensor_.GetColor();
-    double proximity = colorSensor_.GetProximity();
+    int proximity = colorSensor_.GetProximity();
     //frc::SmartDashboard::PutNumber("prox", proximity);
 
     //frc::SmartDashboard::PutNumber("r", color.red);
@@ -49,7 +73,7 @@ bool Channel::badIdea()
     //0.2625, 0.2432, neither
 
 
-    if(proximity < 310) //TODO get value
+    if(proximity < ChannelConstants::BALL_PROXIMITY)
     {
         //frc::SmartDashboard::PutBoolean("BadIdea", false);
         return false;
@@ -60,4 +84,46 @@ bool Channel::badIdea()
 
     //return false;
     return badIdea;
+}
+
+int Channel::getBallCount()
+{
+    return ballCount_;
+}
+
+void Channel::increaseBallCount()
+{
+    if(ballCount_ < GeneralConstants::MAX_BALL_COUNT)
+    {
+        ++ballCount_;
+    }
+}
+
+void Channel::decreaseBallCount()
+{
+    if(ballCount_ > 0)
+    {
+        --ballCount_;
+    }
+}
+
+void Channel::setBallCount(int ballCount)
+{
+    if(ballCount < 0)
+    {
+        ballCount_ = 0;
+    }
+    else if(ballCount > GeneralConstants::MAX_BALL_COUNT)
+    {
+        ballCount_ = GeneralConstants::MAX_BALL_COUNT;
+    }
+    else
+    {
+        ballCount_ = ballCount;
+    }
+}
+
+void Channel::setSeeingBall(bool seeingBall)
+{
+    seeingBall_ = seeingBall;
 }

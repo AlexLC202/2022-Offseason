@@ -12,7 +12,7 @@
 #include "Limelight.h"
 #include "Hood.h"
 #include "Turret.h"
-//#include "Channel.h"
+#include "Channel.h"
 
 using namespace std;
 
@@ -26,7 +26,8 @@ class Shooter
             REVING,
             UNLOADING,
             MANUAL,
-            CLIMB
+            CLIMB,
+            OUTAKING
         };
         State getState();
         void setState(State state);
@@ -37,15 +38,17 @@ class Shooter
         void decreaseRange();
         //void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
+        void setTurretPos(double turretPos);
         double getHoodTicks();
         double getHoodVel();
         double getHoodWantedVel();
         double getTurretAngle();
         double getFlyVel();
+        void clearBallShooting();
 
-        Shooter(Limelight* limelight, SwerveDrive* swerveDrive);
+        Shooter(Limelight* limelight, SwerveDrive* swerveDrive, Channel* channel);
         void periodic(double yaw);
-        void createMap();
+        void createMap(string fileName, map<double, tuple<double, double, double>> &map);
         void reset();
         void zeroHood();
         void setVel(double vel);
@@ -59,6 +62,7 @@ class Shooter
     private:
         Limelight* limelight_;
         SwerveDrive* swerveDrive_;
+        Channel* channel_;
         WPI_TalonFX flywheelMaster_, flywheelSlave_, kickerMotor_;
 
         double maxV = 20000;
@@ -75,7 +79,7 @@ class Shooter
         Hood hood_;
         //Channel channel_;
         bool hoodZeroing_, flywheelReady_, flywheelEjectReady_, shotReady_, hasShot_;
-        bool hasMap_  = false;
+        bool hasMaps_  = false;
         double mapPoints_ = 0;
         double rangeAdjustment_ = 0;
 
@@ -84,7 +88,7 @@ class Shooter
         double prevTime_, dT_;
         frc::Timer timer_;
 
-        double setPos_, prevError_, integralError_, prevVelocity_;
+        double setPos_, prevError_, integralError_, prevVelocity_, wantedSensVel_;
         double fKp_ = 0.0005; //TODO tune values
         double fKi_ = 0.00; 
         double fKd_ = 0.0000; 
@@ -92,9 +96,10 @@ class Shooter
         //0.0001
 
         double yaw_;
-        bool unloadStarted_, unloadShooting_;
+        bool unloadStarted_, unloadShooting_, shootStarted_, shooting_;
 
         map<double, tuple<double, double, double>> shotsMap_;
+        map<double, tuple<double, double, double>> lowAngleShotsMap_;
 
         double vel_;
 };

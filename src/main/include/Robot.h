@@ -47,8 +47,8 @@ private:
 
     Controls* controls_ = new Controls();
     SwerveDrive* swerveDrive_ = new SwerveDrive(limelight_);
-    Shooter* shooter_ = new Shooter(limelight_, swerveDrive_);
-    Channel channel_;
+    Channel* channel_ = new Channel();
+    Shooter* shooter_ = new Shooter(limelight_, swerveDrive_, channel_);
     Intake intake_;
     Climb climb_;
     AutoPaths autoPaths_;
