@@ -94,6 +94,15 @@ bool Controls::fieldOrient()
 
 double Controls::getClimbPower()
 {
+    /*if(abs(xbox_.GetRawAxis(InputConstants::LJOY_Y)) > 0.2)
+    {
+        double thing = frc::SmartDashboard::GetNumber("InCV", 0.0);
+        return (xbox_.GetRawAxis(InputConstants::LJOY_Y) > 0) ? thing : -thing;
+    }
+    else
+    {
+        return 0;
+    }*/
     return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_Y) * 0.5 * GeneralConstants::MAX_VOLTAGE;
 }
 
@@ -177,12 +186,12 @@ bool Controls::manuallyOverrideTurret()
     return xbox_.GetRawAxis(InputConstants::XBOX_RTRIGGER) > 0.75;
 }
 
-double Controls::getHood()
+double Controls::getHoodTicks()
 {
     return abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_Y)) * ShooterConstants::MAX_HOOD_TICKS;
 }
 
-double Controls::getTurret()
+double Controls::getTurretPos()
 {
     return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_X) * 90;
 }

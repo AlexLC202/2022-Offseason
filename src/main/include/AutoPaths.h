@@ -20,7 +20,7 @@ class AutoPaths
             TWO_MIDDLE,
             TWO_LEFT,
             THREE,
-            FIVE
+            BIG_BOY
         };
         AutoPaths();
         void setPath(Path path);

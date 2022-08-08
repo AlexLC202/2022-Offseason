@@ -1,6 +1,6 @@
 #include "SwerveModule.h"
 
-SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offset) : turnMotor_(turnID, "Drivebase"), driveMotor_(driveID, "Drivebase"), cancoder_(cancoderID, "Drivebase"), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA), offset_(offset)
+SwerveModule::SwerveModule(int turnID, int driveID, int cancoderID, double offset) : turnMotor_(turnID, "Drivebase"), driveMotor_(driveID, "Drivebase"), cancoder_(cancoderID, "Drivebase"), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA, kVI), offset_(offset)
 {
     turnMotor_.SetInverted(TalonFXInvertType::CounterClockwise);
     driveMotor_.SetInverted(TalonFXInvertType::Clockwise);
@@ -81,9 +81,22 @@ void SwerveModule::move(double driveSpeed, double angle)
     driveMotor_.SetVoltage(driveVolts);
     //frc::SmartDashboard::PutNumber(id_ + " Drive volts", driveVolts.value());
 
-    //frc::SmartDashboard::PutNumber(id_ + " VEL", cancoder_.GetVelocity());
+    frc::SmartDashboard::PutNumber(id_ + " VEL", cancoder_.GetVelocity());
     
 }
+
+//1, 107
+//2, 400
+//3, 666
+//4, 921
+//5, 1180
+//6, 1440p
+//7, 1700
+//8, 1960
+//9, 2230
+//10, 2500
+//11, 2730
+//12, 2855
 
 double SwerveModule::calcAngPID(double setAngle)
 {

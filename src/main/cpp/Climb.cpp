@@ -3,7 +3,7 @@
 Climb::Climb() : gearboxMaster_(ClimbConstants::MASTER_ID), gearboxSlave_(ClimbConstants::SLAVE_ID), 
 pneumatic1_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_1_ID), 
 pneumatic2_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::PNEUMATIC_2_ID), 
-brake_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::BRAKE_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA)
+brake_(frc::PneumaticsModuleType::CTREPCM, ClimbConstants::BRAKE_ID), trajectoryCalc_(maxV, maxA, kP, kD, kV, kA, kVI)
 {
     gearboxMaster_.SetNeutralMode(NeutralMode::Brake);
     gearboxSlave_.SetNeutralMode(NeutralMode::Brake);
@@ -41,6 +41,7 @@ void Climb::periodic(double roll)
     //frc::SmartDashboard::PutNumber("Roll", roll);
     double pos = gearboxMaster_.GetSelectedSensorPosition();
     //frc::SmartDashboard::PutNumber("ClimbPos", pos);
+    //frc::SmartDashboard::PutNumber("CV", gearboxMaster_.GetSelectedSensorVelocity());
 
     switch(state_)
     {
@@ -264,7 +265,7 @@ bool Climb::climbBar()
     }*/
 
     //frc::SmartDashboard::PutNumber("MID CUR", midCurrent_);
-    frc::SmartDashboard::PutNumber("CLIMB VEL", gearboxMaster_.GetSelectedSensorVelocity());
+    //frc::SmartDashboard::PutNumber("CLIMB VEL", gearboxMaster_.GetSelectedSensorVelocity());
 
     if(/*gearboxMaster_.GetSupplyCurrent() > (midCurrent_ + currentSpike)*/ abs(gearboxMaster_.GetSelectedSensorVelocity()) < 100 && gearboxMaster_.GetSelectedSensorPosition() > ClimbConstants::NEARING_HARDSTOP)
     {
@@ -293,9 +294,12 @@ bool Climb::climbBar()
     return false;
 }
 
+
+
 bool Climb::raiseToBar()
 {
     double pos = gearboxMaster_.GetSelectedSensorPosition();
+    frc::SmartDashboard::PutNumber("CP", pos);
     //double posFromBottom = bottomPos_ - pos;
     //frc::SmartDashboard::PutNumber("CPFB", posFromBottom);
     //18442
@@ -374,3 +378,17 @@ void Climb::setBrake(bool brake)
 //123905
 //116580
 //110000
+
+//-0.7, -380
+//-1, -1060
+//-2, -2990
+//-3, -4900
+//-4, -6810
+//-5, -8730
+//-6, -10640
+//-7, -12600
+//-8, -14530
+//-9, -16500
+//-10, -18440
+//-11, -20400
+//-12, -22170

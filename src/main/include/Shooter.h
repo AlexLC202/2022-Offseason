@@ -39,6 +39,7 @@ class Shooter
         //void setColor(Channel::Color color);
         void setTurretManualVolts(double manualVolts);
         void setTurretPos(double turretPos);
+        void setHoodTicks(double hoodTicks);
         double getHoodTicks();
         double getHoodVel();
         double getHoodWantedVel();
@@ -74,6 +75,7 @@ class Shooter
         TrajectoryCalc flyTrajectoryCalc_;
         bool initTrajectory_;
         double setTrajectoryVel_;
+        double setHoodTicks_;
 
         Turret turret_;
         Hood hood_;

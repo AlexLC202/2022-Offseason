@@ -71,7 +71,7 @@ void AutoPaths::setPath(Path path)
             swervePaths_.push_back(p2);
             break;
         }
-        case FIVE:
+        case BIG_BOY:
         {
             SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
 
@@ -235,7 +235,7 @@ void AutoPaths::periodic(double yaw, SwerveDrive* swerveDrive)
         {
             break;
         }
-        case FIVE:
+        case BIG_BOY:
         {
             break;
         }
@@ -277,7 +277,7 @@ double AutoPaths::initYaw()
             return  90;
             break;
         }
-        case FIVE:
+        case BIG_BOY:
         {
             return 90;
             break;

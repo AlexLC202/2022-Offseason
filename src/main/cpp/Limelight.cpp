@@ -34,6 +34,10 @@ double Limelight::getAdjustedX()
 bool Limelight::hasTarget()
 {
     double targets = table->GetNumber("tv", -1);
+
+    //std::vector<double> thing = table->GetEntry("llpython").GetDoubleArray(std::vector<double>());
+    //cout << thing[0] << endl;
+
     if(targets == -1 || targets == 0)
     {
         return false;

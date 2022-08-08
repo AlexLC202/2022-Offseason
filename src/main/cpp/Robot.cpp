@@ -45,7 +45,7 @@ void Robot::RobotInit()
     autoChooser_.AddOption("Two Middle", AutoPaths::TWO_MIDDLE);
     autoChooser_.AddOption("Two Left", AutoPaths::TWO_LEFT);
     autoChooser_.AddOption("Three", AutoPaths::THREE);
-    autoChooser_.AddOption("Five", AutoPaths::FIVE);
+    autoChooser_.AddOption("BIG BOY", AutoPaths::BIG_BOY);
     frc::SmartDashboard::PutData("Auto Modes", &autoChooser_);
 
     controls_->setClimbMode(false);
@@ -58,6 +58,8 @@ void Robot::RobotInit()
     {
         std::cout << e.what() << std::endl;
     }
+    navx_->ZeroYaw();
+    frc::SmartDashboard::PutNumber("YOff", 0.0);
 }
 
 /**
@@ -155,7 +157,7 @@ void Robot::TeleopInit()
     //turretLogger_->openFile();
 
     //frc::SmartDashboard::PutNumber("InV", 0);
-    //frc::SmartDashboard::PutNumber("InA", 0);
+    frc::SmartDashboard::PutNumber("InA", 0);
     //frc::SmartDashboard::PutNumber("InHV", 0);
     //frc::SmartDashboard::PutNumber("fKp", 0);
     //frc::SmartDashboard::PutNumber("HINV", 0);
@@ -164,7 +166,11 @@ void Robot::TeleopInit()
     //frc::SmartDashboard::PutNumber("K", 2);
     frc::SmartDashboard::PutNumber("ITV", 0.0);
     frc::SmartDashboard::PutNumber("InT", 0.0);
-    frc::SmartDashboard::PutNumber("smiv", 0.0);
+    //frc::SmartDashboard::PutNumber("smiv", 0.0);
+    //frc::SmartDashboard::PutNumber("InCV", 0.0);
+
+    //REMOVE FOR COMP
+    yawOffset_ = frc::SmartDashboard::GetNumber("YOff", 0.0);
 
 }
 
@@ -195,6 +201,9 @@ void Robot::TeleopPeriodic()
             shooter_->setPID(fKp, fKi, fKd);
             shooter_->setHoodPID(hKp, hKi, hKd);
         }*/
+
+        //shooter_->setTurretPos(controls_->getTurretPos());
+        //shooter_->setHoodTicks(controls_->getHoodTicks());
 
         if(controls_->autoClimbCancelled()) //TODO remove later?
         {

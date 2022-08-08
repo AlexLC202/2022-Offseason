@@ -107,14 +107,15 @@ void Turret::reset()
 
 void Turret::track()
 {
-    if(!limelight_->hasTarget() && !swerveDrive_->foundGoal() && false)
+    frc::SmartDashboard::PutBoolean("Found goal", swerveDrive_->foundGoal());
+    if(!limelight_->hasTarget() && !swerveDrive_->foundGoal()) //REMOVE THIS PLEASE
     {
         turretMotor_.SetVoltage(units::volt_t(0));
         limelight_->lightOn(true);
     }
     else
     {
-        //double volts = calcPID();
+        double volts = calcPID();
 
         double time = timer_.GetFPGATimestamp().value();
         dT_ = time - prevTime_;
@@ -138,9 +139,8 @@ void Turret::track()
             yawPrevTime_ = time;
         }
 
-        double volts;
+        /*double volts;
         double error = calcError();
-        frc::SmartDashboard::PutNumber("TE", error);
 
         double pos = getAngle();
         frc::SmartDashboard::PutNumber("TP", pos);
@@ -149,32 +149,43 @@ void Turret::track()
         frc::SmartDashboard::PutNumber("TV", vel);
         
         double setPos = pos + error;
+        frc::SmartDashboard::PutNumber("TSP", setPos);
         if(abs(setPos > 180))
         {
+            frc::SmartDashboard::PutNumber("SPTHING DIED", setPos);
+            frc::SmartDashboard::PutNumber("ETHING DIED", error);
             frc::SmartDashboard::PutBoolean("THING DIED", true);
+            return;
         }
-        frc::SmartDashboard::PutNumber("TSP", setPos);
+        //frc::SmartDashboard::PutNumber("TSP", setPos);
 
         //double inPos = frc::SmartDashboard::GetNumber("InT", getAngle());
         //Helpers::normalizeAngle(inPos);
+        //error = inPos - getAngle();
+        //setPos = inPos;
+        //frc::SmartDashboard::PutNumber("TE", error);
 
         //error = inPos_ - getAngle();
         //setPos = inPos_;
+        //frc::SmartDashboard::PutNumber("TIP", inPos_);
+        //frc::SmartDashboard::PutNumber("TE", error);
+        //frc::SmartDashboard::PutBoolean("TR", (abs(error) < ShooterConstants::TURRET_AIMED));
         
         //initTrajectory_ = false;
-        double wantedVel, wantedPos;
-        if(initTrajectory_ && abs(setPos - currentSetPos_) < 5) //Reduce to like 1
+        double wantedVel, wantedPos; 
+        if(initTrajectory_ && abs(setPos - currentSetPos_) < 3)
         {
-            /*double acc = get<0>(trajectoryCalc_.getProfile());
+            double acc = get<0>(trajectoryCalc_.getProfile());
             wantedVel = get<1>(trajectoryCalc_.getProfile());
-            if(abs(error) > ShooterConstants::TURRET_AIMED && wantedVel == 0 && acc == 0)
+            if(abs(error) > ShooterConstants::TURRET_AIMED && wantedVel == 0 && acc == 0 && abs(vel) < 1)
             {
                 trajectoryCalc_.generateTrajectory(pos, setPos, vel);
-            }*/
-            /*else
-            {
-                trajectoryCalc_.generateTrajectory(wantedPos, setPos, wantedVel);
-            }*/
+            }
+            //else
+            //{
+                //wantedPos = get<2>(trajectoryCalc.getProfile());
+                //trajectoryCalc_.generateTrajectory(wantedPos, setPos, wantedVel);
+            //}
         }
         else
         {
@@ -182,43 +193,30 @@ void Turret::track()
             currentSetPos_ = setPos;
 
             trajectoryCalc_.generateTrajectory(pos, setPos, vel);
+            //wantedPos = get<2>(trajectoryCalc_.getProfile());
+            //wantedVel = get<1>(trajectoryCalc_.getProfile());
         }
 
         //TODO clean all the stuff above up... like man
 
-        wantedPos = get<2>(trajectoryCalc_.getProfile());
+        //wantedPos = get<2>(trajectoryCalc_.getProfile());
         wantedVel = get<1>(trajectoryCalc_.getProfile());
 
-        if(abs(wantedVel) == 0)
-        {
-            volts = 0;
-        }
-        else
-        {
-            double ff = (abs(wantedVel) - ShooterConstants::TURRET_FF_INTERCEPT) / ShooterConstants::TURRET_FF;
-            if(vel < 0)
-            {
-                ff *= -1;
-            }
-            volts = ff;
-        }
-
-        //double cpVolts = trajectoryCalc_.calcPower(pos, vel);
-        //cout << volts << ", " << cpVolts << endl;
+        volts = trajectoryCalc_.calcPower(pos, vel);
 
         if(state_ != CLIMB && abs(getAngle()) < 178)
         {
             //volts += calcAngularFF();
             //volts += calcLinearFF();
-        }
+        }*/
 
         //frc::SmartDashboard::PutNumber("T Volts", volts);
-        if(volts > 0 && (turretMotor_.GetSelectedSensorPosition() > (180 * ShooterConstants::TICKS_PER_TURRET_DEGREE)))
+        if(volts > 0 && getAngle() > 175)
         {
             std::cout << "trying to decapitate itself" << std::endl;
             turretMotor_.SetVoltage(units::volt_t(0));
         }
-        else if (volts < 0 && turretMotor_.GetSelectedSensorPosition() < (-180 * ShooterConstants::TICKS_PER_TURRET_DEGREE))
+        else if (volts < 0 && getAngle() < -175)
         {
             std::cout << "trying to decapitate itself" << std::endl;
             turretMotor_.SetVoltage(units::volt_t(0));
@@ -322,6 +320,10 @@ double Turret::calcLinearFF()
 
 double Turret::calcError()
 {
+    if(!swerveDrive_->foundGoal())
+    {
+        return 0;
+    }
     double error, goalError;
     if(state_ == UNLOADING)
     {
@@ -330,6 +332,7 @@ double Turret::calcError()
     else if(state_ == CLIMB)
     {
         error = -getAngle();
+        return error;
     }
     else if(limelight_->hasTarget())
     {
@@ -361,7 +364,17 @@ double Turret::calcError()
 
     if(abs(error + getAngle()) > 180)
     {
-        error = (error > 0) ? error - 360 : error + 360;
+        if(getAngle() > 0 && error > 0)
+        {
+            error -= 360;
+        }
+
+        else if(getAngle() < 0 && error < 0)
+        {
+            error += 0;
+        }
+
+        //error = (error > 0) ? error - 360 : error + 360;
     }
 
     if(abs(goalError) > 40 && !limelight_->hasTarget()) //COMP disable probably

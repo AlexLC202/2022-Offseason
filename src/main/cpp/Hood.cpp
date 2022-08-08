@@ -90,7 +90,7 @@ void Hood::periodic()
 
 void Hood::reset()
 {
-    zeroed_ = true;
+    zeroed_ = party();
     currentStopHit_ = false;
     hoodMotor_.SetSelectedSensorPosition(0);
     initTrajectory_ = false;
@@ -141,6 +141,7 @@ void Hood::move()
     //volts = inVolts_;
 
     //volts = frc::SmartDashboard::GetNumber("HINV", 0);
+    //setPos_ = frc::SmartDashboard::GetNumber("InA", 0);
 
     double volts;
     if(abs(setPos_ - setTrajectoryPos_) > 10 && initTrajectory_) //TODO get value
@@ -173,6 +174,8 @@ void Hood::move()
         tuple<double, double, double> profile = trajectoryCalc_.getProfile();
 
         double profileVel = get<1>(profile);
+        double profileAcc = get<0>(profile);
+        double profilePos = get<2>(profile);
         double kVVolts;
         if(profileVel < 0)
         {
@@ -184,16 +187,17 @@ void Hood::move()
         }
         else
         {
+            //kVVolts = 0;
             kVVolts = ShooterConstants::HOOD_WEIGHT_FF;
         }
 
-        if(get<1>(profile) == 00 && get<0>(profile) == 0)
+        if(profileVel == 00 && profileAcc == 0 && vel < 10)
         {
-            volts = ((get<2>(profile) - pos) * kP_) + ShooterConstants::HOOD_WEIGHT_FF;
+            volts = ((profilePos - pos) * kP_) + ShooterConstants::HOOD_WEIGHT_FF;
         }
         else
         {
-            volts = ((get<2>(profile) - pos) * kP) + ((profileVel - vel) * kD) + kVVolts + (get<0>(profile) * kA);
+            volts = ((get<2>(profile) - pos) * kP) + ((profileVel - vel) * kD) + kVVolts + (profileAcc * kA);
         }
         
 

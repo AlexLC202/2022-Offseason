@@ -10,6 +10,7 @@
 class Hood
 {
     public:
+        bool party(){return true;}
         enum State
         {
             IDLE, 
@@ -44,7 +45,7 @@ class Hood
         WPI_TalonFX hoodMotor_;
 
         double maxV = 100000;
-        double maxA = 500000;
+        double maxA = 500000 * 1.5;
         double kP = 0.0001;
         double kD = 0;
         double kV = 1 / ShooterConstants::HOOD_NEG_FF;
@@ -58,7 +59,7 @@ class Hood
         bool zeroed_, currentStopHit_;
         double setPos_, prevError_, integralError_;
         double kP_ = 0.0008; //TODO tune values
-        double kI_ = 0.00;
+        bool kI_ = false; //IMPORTANT will brek everything like the tf2 coconut
         double kD_ = 0.0;
 
         double prevTime_, dT_;

@@ -284,7 +284,7 @@ double TrajectoryCalc::calcPower(double pos, double vel)
     else
     {
         kVVolts = (abs(get<1>(profile)) - kVI_) * kV_;
-        if(abs(get<1>(profile)) < 0)
+        if(get<1>(profile) < 0)
         {
             kVVolts *= -1;
         }

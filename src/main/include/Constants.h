@@ -26,7 +26,7 @@ namespace GeneralConstants
     const double HANGAR_X = -4; //-4, -8
     const double HANGAR_Y = -8;
 
-    const int MAX_BALL_COUNT = 2;
+    const int MAX_BALL_COUNT = 1;
 
 }
 
@@ -137,13 +137,16 @@ namespace ClimbConstants
     const int PNEUMATIC_2_ID = 2;
     const int BRAKE_ID = 1;
 
+    const double RAISE_FF = 19308.5;
+    const double RAISE_FF_INTERCEPT = -9083.19;
+
     const double TOO_FAR_FROM_STATIC_HOOKS = 16500;
     const double ABOVE_STATIC_HOOKS = 25000; //112000, TODO get values
     const double CLEAR_OF_BARS = 70850; //141700 (average down value)
     const double NEARING_HARDSTOP = 110000;
     //const double OFF_HOOKS = -110500;
     const double EXTEND_THRESHOLD = 1000; //TODO experiment for value
-    const double HIGH_EXTEND_THRESHOLD = 4000;
+    const double HIGH_EXTEND_THRESHOLD = 2000;
 
     const double RAISE_VOLTAGE = -6; //TODO increase, get better trapezoidal motion and stuff
 

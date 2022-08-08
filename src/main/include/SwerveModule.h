@@ -38,11 +38,12 @@ class SwerveModule
         WPI_TalonFX driveMotor_;
         WPI_CANCoder cancoder_;
 
-        double maxV = 1320;
-        double maxA = 100000;
-        double kP = 0;
+        double maxV = 1440;
+        double maxA = 14400 * 10;
+        double kP = 0.05;
         double kD = 0;
-        double kV = 0.00454545;
+        double kV = 1 / 261.864;
+        double kVI = -131.727;
         double kA = 0;
         TrajectoryCalc trajectoryCalc_;
         bool initTrajectory_;

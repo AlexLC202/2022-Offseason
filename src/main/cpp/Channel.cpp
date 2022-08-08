@@ -22,10 +22,10 @@ void Channel::periodic()
 
     frc::SmartDashboard::PutNumber("Ball Count", ballCount_);
 
-    /*if(ballCount_ == 0 && proximity > ChannelConstants::BALL_PROXIMITY)
+    if(ballCount_ == 0 && proximity > ChannelConstants::BALL_PROXIMITY)
     {
         ballCount_ = 1;
-    }*/
+    }
     //see if this happens enough to merit this clause
 }
 

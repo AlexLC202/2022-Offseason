@@ -139,6 +139,11 @@ void Shooter::setTurretPos(double turretPos)
     turret_.setInPos(turretPos);
 }
 
+void Shooter::setHoodTicks(double hoodTicks)
+{
+    setHoodTicks_ = hoodTicks;
+}
+
 double Shooter::getHoodTicks()
 {
     return hood_.getHoodTicks();
@@ -270,6 +275,7 @@ void Shooter::periodic(double yaw)
         hasShot_ = false;
     }
 
+    //hoodAngle = setHoodTicks_;
     //frc::SmartDashboard::PutNumber("V", flywheelMaster_.GetSelectedSensorVelocity() * 20 * M_PI * ShooterConstants::FLYWHEEL_RADIUS / (GeneralConstants::TICKS_PER_ROTATION * ShooterConstants::FLYWHEEL_GEAR_RATIO));
 
     if(partDer > 10.5) //Change back to 0.5, maybe lower to 0.3
