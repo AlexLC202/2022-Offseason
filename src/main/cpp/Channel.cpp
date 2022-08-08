@@ -1,8 +1,32 @@
 #include "Channel.h"
 
-Channel::Channel() /*: colorSensor_(ChannelConstants::COLOR_SENSOR_PORT)*/
+Channel::Channel()
 {
+    ballCount_ = 0;
+    seeingBall_ = false;
+}
 
+void Channel::periodic()
+{
+    int proximity = colorSensor_.GetProximity();
+    if(!seeingBall_ && proximity > ChannelConstants::BALL_PROXIMITY)
+    {
+        increaseBallCount();
+        seeingBall_ = true;
+    }
+
+    if(seeingBall_ && proximity < ChannelConstants::BALL_PROXIMITY)
+    {
+        seeingBall_ = false;
+    }
+
+    frc::SmartDashboard::PutNumber("Ball Count", ballCount_);
+
+    if(ballCount_ == 0 && proximity > ChannelConstants::BALL_PROXIMITY)
+    {
+        ballCount_ = 1;
+    }
+    //see if this happens enough to merit this clause
 }
 
 void Channel::setColor(Color color)
@@ -18,30 +42,12 @@ Channel::Color Channel::getColor()
 bool Channel::badIdea()
 {
     frc::Color color = colorSensor_.GetColor();
-    //double IR = colorSensor_.GetIR();
-    double proximity = colorSensor_.GetProximity();
-    frc::SmartDashboard::PutNumber("prox", proximity);
+    int proximity = colorSensor_.GetProximity();
+    //frc::SmartDashboard::PutNumber("prox", proximity);
 
-    frc::SmartDashboard::PutNumber("r", color.red);
+    //frc::SmartDashboard::PutNumber("r", color.red);
     //frc::SmartDashboard::PutNumber("g", color.green);
-    frc::SmartDashboard::PutNumber("b", color.blue);
-
-    /*if(color_ == Color::RED)
-    {
-        double rError = abs(ChannelConstants::RED_R - color.red);
-        double gError = abs(ChannelConstants::RED_G - color.green);
-        double bError = abs(ChannelConstants::RED_B - color.blue);
-
-        return (abs(rError + gError + bError) > 40); //TODO get value
-    }
-    else
-    {
-        double rError = abs(ChannelConstants::BLUE_R - color.red);
-        double gError = abs(ChannelConstants::BLUE_G - color.green);
-        double bError = abs(ChannelConstants::BLUE_B - color.blue);
-
-        return (abs(rError + gError + bError) < 40); //TODO get value
-    }*/
+    //frc::SmartDashboard::PutNumber("b", color.blue);
 
     Color ballColor;
     if(color.red > 1.5 * color.blue)
@@ -57,17 +63,17 @@ bool Channel::badIdea()
         ballColor = UNKNOWN;
     }
 
-    frc::SmartDashboard::PutBoolean("RED", (ballColor == RED));
-    frc::SmartDashboard::PutBoolean("BLUE", (ballColor == BLUE));
+    //frc::SmartDashboard::PutBoolean("RED", (ballColor == RED));
+    //frc::SmartDashboard::PutBoolean("BLUE", (ballColor == BLUE));
 
     //0.394, 0.1856, red
     //0.5003, 0.1207, red
     //0.3907, 0.1861, red
-    
+
     //0.2625, 0.2432, neither
 
 
-    if(proximity < 310) //TODO get value
+    if(proximity < ChannelConstants::BALL_PROXIMITY)
     {
         //frc::SmartDashboard::PutBoolean("BadIdea", false);
         return false;
@@ -76,6 +82,48 @@ bool Channel::badIdea()
     bool badIdea = (ballColor != color_ && ballColor != UNKNOWN);
     //frc::SmartDashboard::PutBoolean("BadIdea", badIdea);
 
-    //return false; //TODO remove
+    //return false;
     return badIdea;
+}
+
+int Channel::getBallCount()
+{
+    return ballCount_;
+}
+
+void Channel::increaseBallCount()
+{
+    if(ballCount_ < GeneralConstants::MAX_BALL_COUNT)
+    {
+        ++ballCount_;
+    }
+}
+
+void Channel::decreaseBallCount()
+{
+    if(ballCount_ > 0)
+    {
+        --ballCount_;
+    }
+}
+
+void Channel::setBallCount(int ballCount)
+{
+    if(ballCount < 0)
+    {
+        ballCount_ = 0;
+    }
+    else if(ballCount > GeneralConstants::MAX_BALL_COUNT)
+    {
+        ballCount_ = GeneralConstants::MAX_BALL_COUNT;
+    }
+    else
+    {
+        ballCount_ = ballCount;
+    }
+}
+
+void Channel::setSeeingBall(bool seeingBall)
+{
+    seeingBall_ = seeingBall;
 }

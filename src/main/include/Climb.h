@@ -9,6 +9,8 @@
 
 #include <frc/Solenoid.h>
 
+#include <numeric>
+
 class Climb
 {
     public:
@@ -64,15 +66,17 @@ class Climb
 
         frc::Solenoid brake_;
 
-        double bottomPos_, startTime_;
+        double bottomPos_, startTime_, midCurrent_;
+        vector<double> climbCurrents_;
         bool waiting_;
         frc::Timer timer_;
 
         double maxV = 100000;
-        double maxA = 110000000;
+        double maxA = 1000000 * 2;
         double kP = 0;
         double kD = 0;
-        double kV = 0.00005747;
+        double kV = 1 / ClimbConstants::RAISE_FF;
+        double kVI = ClimbConstants::RAISE_FF_INTERCEPT;
         double kA = 0;
         TrajectoryCalc trajectoryCalc_;
         bool initTrajectory_;

@@ -23,18 +23,21 @@ namespace GeneralConstants
 
     const double GOAL_HEIGHT = 2.641;
 
-    const double HANGAR_X = -0; //-4, -8
-    const double HANGAR_Y = -2;
+    const double HANGAR_X = -4; //-4, -8
+    const double HANGAR_Y = -8;
+
+    const int MAX_BALL_COUNT = 1;
 
 }
 
 namespace LimelightConstants
 {
-    const double ANGLE_OFFSET = 90 - 49.5; //49.5 from 0 at top
-    const double HEIGHT_OFFSET = 0.5334;
-    const double TURRET_ANGLE_OFFSET = 5.0; //TODO get value more precise
+    const double ANGLE_OFFSET = 32; //49.5 from 0 at top (90-49.5), 30
+    const double HEIGHT_OFFSET = 0.7874; //0.533, 0.7874
+    const double TURRET_ANGLE_OFFSET = 7; //5.0, 4?
     const double TURRET_CENTER_RADIUS = 0.229; //TODO get value
     const double ROBOT_TURRET_CENTER_DISTANCE = 0.1524; //TODO get value
+    const double LIMELIGHT_TO_BALL_CENTER_DIST = -0.2032; //TODO get more precise, -0.1145, -0.2032?
 }
 
 namespace InputConstants
@@ -50,6 +53,8 @@ namespace InputConstants
     const int XBOX_PORT = 2;
     const int XBOX_LJOY_X = 0;
     const int XBOX_LJOY_Y = 1;
+    const int XBOX_LTRIGGER = 2;
+    const int XBOX_RTRIGGER = 3;
     const int XBOX_RJOY_X = 4;
     const int XBOX_RJOY_Y = 5;
 
@@ -111,6 +116,11 @@ namespace SwerveConstants
     const double BR_CANCODER_OFFSET = 17.5 + 180;
     const double BL_CANCODER_OFFSET = 176.39 + 180;
 
+    const double MAX_LA = 1;
+    const double MAX_LV = 2;
+    const double MAX_AA = 180;
+    const double MAX_AV = 360;
+
 }
 
 namespace IntakeConstants
@@ -127,28 +137,37 @@ namespace ClimbConstants
     const int PNEUMATIC_2_ID = 2;
     const int BRAKE_ID = 1;
 
+    const double RAISE_FF = 19308.5;
+    const double RAISE_FF_INTERCEPT = -9083.19;
+
     const double TOO_FAR_FROM_STATIC_HOOKS = 16500;
     const double ABOVE_STATIC_HOOKS = 25000; //112000, TODO get values
-    const double CLEAR_OF_BARS = 70850;
+    const double CLEAR_OF_BARS = 70850; //141700 (average down value)
+    const double NEARING_HARDSTOP = 110000;
     //const double OFF_HOOKS = -110500;
     const double EXTEND_THRESHOLD = 1000; //TODO experiment for value
-    //141700
+    const double HIGH_EXTEND_THRESHOLD = 2000;
 
-    const double RAISE_VOLTAGE = -6;
+    const double RAISE_VOLTAGE = -6; //TODO increase, get better trapezoidal motion and stuff
 
     const double LOW_CLIMB_VOLTAGE = 9;
-    const double MID_CLIMB_VOLTAGE = 6;
+    const double MID_CLIMB_VOLTAGE = 8;
     const double HIGH_CLIMB_VOLTAGE = 6;
 
-    const double LOW_STALL_CURRENT = 150;
-    const double MID_STALL_CURRENT = 100;
-    const double HIGH_STALL_CURRENT = 100;
+    //const double LOW_STALL_CURRENT = 175;
+    //const double MID_STALL_CURRENT = 100;
+    //const double HIGH_STALL_CURRENT = 100;
+
+    //const double LOW_STALL_CURRENT_SPIKE = 50;
+    //const double MID_STALL_CURRENT_SPIKE = 100;
+    //const double HIGH_STALL_CURRENT_SPIKE = 200; //idk why I have this
 
     const double SUPER_SLOW_RAISE_VOLTAGE = -1;
     const double SLOW_RAISE_VOLTAGE = -2.5; //TODO make sure to lower on bar
+    const double SLOW_CLIMB_VOLTAGE = 3;
 
-    const double ROLL_MAX = 150; //TODO yeah these two, also pitch roll idk man
-    const double ROLL_MIN = -165;
+    const double ROLL_MAX = 170; //TODO yeah these two, also pitch roll idk man
+    const double ROLL_MIN = -180;
 
     const double ON_BAR_DELAY = 0.85;
 }
@@ -162,31 +181,43 @@ namespace ShooterConstants
     const int FLYWHEEL_MASTER_ID = 23;
 
     const int MAX_HOOD_TICKS = -4000;
-    const double MAX_HOOD_ANGLE = 63; //TODO get values
-    const double MIN_HOOD_ANGLE = 43; //yeah
-    const double HOOD_ZERO_CURRENT = 2.8; //TODO test
-    const double TICKS_PER_HOOD_DEGREE = 197.78; //TODO get value
-    const double HOOD_FF = -0.69;
+    const double MAX_HOOD_ANGLE = 60; //TODO get values (0, 60), (-2000, 48), (-3000, 43?)
+    const double MIN_HOOD_ANGLE = 36;
+    const double HOOD_ZERO_CURRENT = 0.6;
+    const double TICKS_PER_HOOD_DEGREE = 166.67;
+    const double HOOD_WEIGHT_FF = -0.69;
+
+    const double HOOD_NEG_FF = 19370; //18818.3, 18370
+    const double HOOD_NEG_FF_INTERCEPT = 13400; //9850.67, 13400
+    const double HOOD_POS_FF = 14777.1;
+    const double HOOD_POS_FF_INTERCEPT = -604.762;
 
     const double FLYWHEEL_RADIUS = 0.0381; //TODO 2 inches, make more precise
     const double FLYWHEEL_GEAR_RATIO = (2.0/3.0); //TODO get value
     const double MAX_VELOCITY = (GeneralConstants::MAX_RPM / FLYWHEEL_GEAR_RATIO) * 2 * M_PI * FLYWHEEL_RADIUS / 60;
 
     const double FLYWHEEL_FF = 1703;
-    const double FLYWHEEL_FF_INTERCEPT = -905;
-    const double TURRET_FF = 82;
+    const double FLYWHEEL_FF_INTERCEPT = -750;
+    const double TURRET_FF = 106.583; //82
+    const double TURRET_FF_INTERCEPT = -79.5229;
 
     const double TURRET_ZERO_CURRENT = 2.8; //TODO test value
     const double TICKS_PER_TURRET_DEGREE = 175; //TODO test value
 
-    const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/ashots.csv";
+    const string SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots.csv";
+    const string LOW_ANGLE_SHOTS_FILE_NAME = frc::filesystem::GetDeployDirectory() + "/shots_low_angle.csv";
     const double Kr = 0.0762; //TODO get value, 3 inches = 0.0762
 
     const int FLYWHEEL_READY = 330;
-    const int FLYWHEEL_EJECT_READY = 800;
-    const int HOOD_READY = 100;
-    const int TURRET_AIMED = 3;
+    const int FLYWHEEL_EJECT_READY = 500;
+    const int HOOD_READY = 200;
+    const int TURRET_AIMED = 4;
     const int TURRET_UNLOAD_AIMED = 7;
+
+    const double KICKER_VOLTS = 2;
+
+    const double UNLOADING_CURRENT = 15;
+    const double UNLOADING_CURRENT_LOW = 5;
 
 }
 
@@ -200,4 +231,6 @@ namespace ChannelConstants
     const double BLUE_R = 0;
     const double BLUE_G = 0;
     const double BLUE_B = 255;
+
+    const int BALL_PROXIMITY = 310;
 }

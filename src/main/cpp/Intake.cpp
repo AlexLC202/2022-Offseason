@@ -3,7 +3,6 @@
 Intake::Intake() : intakeMotor_(IntakeConstants::MOTOR_ID), intakePneumatic_(frc::PneumaticsModuleType::CTREPCM, IntakeConstants::SOLENOID_ID)
 {
     intakeMotor_.SetNeutralMode(NeutralMode::Coast);
-    //intakePneumatic_->Set(false);
 
     state_ = RETRACTED_IDLE;
 }
@@ -12,22 +11,6 @@ Intake::State Intake::getState(){ return state_; }
 
 void Intake::setState(State state)
 {
-    /*if(state == INTAKING || state == OUTAKING)
-    {
-        if(state_ == RETRACTED_IDLE)
-        {
-            std::cout << "Deploy intake before spinning it" << std::endl;
-        }
-        else
-        {
-            state_ = state;
-        }
-    }
-    else
-    {
-        state_ = state;
-    }*/
-
     state_ = state;
 }
 
@@ -87,7 +70,7 @@ void Intake::stop()
 
 void Intake::deploy()
 {
-    intakePneumatic_.Set(true); //TODO test true/false
+    intakePneumatic_.Set(true);
 }
 
 void Intake::retract()

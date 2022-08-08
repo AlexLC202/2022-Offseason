@@ -19,12 +19,19 @@ void Controls::periodic()
 
 double Controls::getXStrafe()
 {
+    /*if(manuallyOverrideTurret())
+    {
+        return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_X);
+    }*/
+
     double x = lJoy_.GetRawAxis(InputConstants::LJOY_X);
     if(abs(x) < 0.05)
     {
         return 0;
     }
-    return (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
+    x = (x > 0) ? (x - 0.05) / 0.95 : (x + 0.05) / 0.95;
+    return x;
+    //return (shootPressed()) ? x * 0.25 : x;
 
     /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
     {
@@ -38,12 +45,19 @@ double Controls::getXStrafe()
 
 double Controls::getYStrafe()
 {
+    /*if(manuallyOverrideTurret())
+    {
+        return -xbox_.GetRawAxis(InputConstants::XBOX_LJOY_Y);
+    }*/
+
     double y = -lJoy_.GetRawAxis(InputConstants::LJOY_Y);
     if(abs(y) < 0.05)
     {
         return 0;
     }
-    return (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
+    y = (y > 0) ? (y - 0.05) / 0.95 : (y + 0.05) / 0.95;
+    return y;
+    //return (shootPressed()) ? y * 0.25 : y;
 
     /*if(abs(lJoy_.GetRawAxis(InputConstants::LJOY_X)) > 0.5)
     {
@@ -57,17 +71,9 @@ double Controls::getYStrafe()
 
 double Controls::getTurn()
 {
-    //return 0;
-    /*if(climbMode_ && rJoy_.GetTrigger())
+    /*if(manuallyOverrideTurret())
     {
         return 0;
-    }
-    else
-    {
-        double turn = rJoy_.GetRawAxis(InputConstants::RJOY_X);
-        frc::SmartDashboard::PutNumber("Turn", turn);
-        return turn;
-        //return rJoy->GetRawAxis(InputConstants::RJOY_X) * (GeneralConstants::MAX_VOLTAGE * GeneralConstants::MAX_VOLTAGE / (SwerveConstants::LENGTH * (SwerveConstants::LENGTH + SwerveConstants::WIDTH * SwerveConstants::WIDTH) / 4) ); //TODO check math
     }*/
 
     double turn = rJoy_.GetRawAxis(InputConstants::RJOY_X);
@@ -75,7 +81,10 @@ double Controls::getTurn()
     {
         return 0;
     }
-    return (turn > 0) ? ((turn - 0.05) / 0.95) * 0.3 : ((turn + 0.05) / 0.95) * 0.3;
+    turn = (turn > 0) ? ((turn - 0.05) / 0.95) * 0.3 : ((turn + 0.05) / 0.95) * 0.3;
+
+    return turn;
+    //return (shootPressed()) ? turn * 0.1 : turn;
 }
 
 bool Controls::fieldOrient()
@@ -83,22 +92,23 @@ bool Controls::fieldOrient()
     return xbox_.GetRawButton(InputConstants::FIELD_ORIENT_BUTTON);
 }
 
-double Controls::getClimbPower() //TODO maybe change to the thumb joystick thing?
+double Controls::getClimbPower()
 {
-    /*if(climbMode_ && rJoy_.GetTrigger())
+    /*if(abs(xbox_.GetRawAxis(InputConstants::LJOY_Y)) > 0.2)
     {
-        return rJoy_.GetRawAxis(InputConstants::RJOY_Y) * GeneralConstants::MAX_VOLTAGE * 0.5;
+        double thing = frc::SmartDashboard::GetNumber("InCV", 0.0);
+        return (xbox_.GetRawAxis(InputConstants::LJOY_Y) > 0) ? thing : -thing;
     }
     else
     {
         return 0;
     }*/
-
     return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_Y) * 0.5 * GeneralConstants::MAX_VOLTAGE;
 }
 
 bool Controls::getPneumatic1Toggle()
 {
+    //return xbox_.GetRawButton(InputConstants::CLIMB_PNEUMATIC2_BUTTON); //TODO change
     return xbox_.GetRawButtonPressed(InputConstants::CLIMB_PNEUMATIC1_BUTTON);
 }
 
@@ -129,7 +139,7 @@ bool Controls::outakePressed()
 
 bool Controls::shootPressed()
 {
-    return lJoy_.GetTrigger();
+    return lJoy_.GetTrigger()/* && resetUnload()*/;
 }
 
 bool Controls::increaseRange()
@@ -144,28 +154,44 @@ bool Controls::decreaseRange()
 
 double Controls::getTurretManual()
 {
-    /*if(abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X)) > 0.3)
+    /*if(abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X)) > 0.2)
     {
         if(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) > 0)
         {
-            return 1;
+            return frc::SmartDashboard::GetNumber("ITV", 0.0);
         }
         else
         {
-            return -1;
+            return -frc::SmartDashboard::GetNumber("ITV", 0.0);
         }
     }*/
 
     return xbox_.GetRawAxis(InputConstants::XBOX_RJOY_X) * 0.3 * GeneralConstants::MAX_VOLTAGE;
 }
+//0,7 0
+//0.8, 100
+//1, 420
+//2, 2280
+//3, 4200
+//4, 6100
 
 bool Controls::resetUnload()
 {
-    return xbox_.GetTrigger();
-    cout << "resetting unload" << endl;
+    return xbox_.GetRawAxis(InputConstants::XBOX_LTRIGGER) > 0.75;
+    //cout << "resetting unload" << endl;
 }
 
 bool Controls::manuallyOverrideTurret()
 {
-    return xbox_.GetTrigger();
+    return xbox_.GetRawAxis(InputConstants::XBOX_RTRIGGER) > 0.75;
+}
+
+double Controls::getHoodTicks()
+{
+    return abs(xbox_.GetRawAxis(InputConstants::XBOX_RJOY_Y)) * ShooterConstants::MAX_HOOD_TICKS;
+}
+
+double Controls::getTurretPos()
+{
+    return xbox_.GetRawAxis(InputConstants::XBOX_LJOY_X) * 90;
 }

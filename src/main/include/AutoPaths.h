@@ -5,6 +5,9 @@
 #include "SwerveDrive.h"
 #include "Intake.h"
 #include "Shooter.h"
+#include "SwervePath.h"
+#include "Constants.h"
+#include <vector>
 
 class AutoPaths
 {
@@ -17,8 +20,9 @@ class AutoPaths
             TWO_MIDDLE,
             TWO_LEFT,
             THREE,
-            FIVE
+            BIG_BOY
         };
+        AutoPaths();
         void setPath(Path path);
         Path getPath();
 
@@ -26,9 +30,9 @@ class AutoPaths
         Intake::State getIntakeState();
 
         void startTimer();
-        void stopTimer();
+        //void stopTimer();
 
-        void periodic(SwerveDrive* swerveDrive);
+        void periodic(double yaw, SwerveDrive* swerveDrive);
         double initYaw();
     private:
         Path path_;
@@ -36,4 +40,10 @@ class AutoPaths
         Intake::State intakeState_;
 
         frc::Timer timer_;
+        double startTime_;
+
+        vector<SwervePath> swervePaths_;
+        int pathNum_;
+        //SwervePath swervePath_;
+        //SwervePath swervePath_(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV)
 };

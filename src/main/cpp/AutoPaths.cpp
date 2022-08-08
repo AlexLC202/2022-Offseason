@@ -1,8 +1,106 @@
 #include "AutoPaths.h"
 
+AutoPaths::AutoPaths()/* : swervePath_(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV)*/
+{
+    pathNum_ = 0;
+}
+
 void AutoPaths::setPath(Path path)
 {
     path_ = path;
+    pathNum_ = 0;
+    swervePaths_.clear();
+
+    switch(path_)
+    {
+        case TAXI_DUMB:
+        {
+            break;
+        }
+        case TWO_DUMB: 
+        {
+
+        }
+        case TWO_RIGHT:
+        {
+            SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+            p1.addPoint(SwervePose(1, 0, 90, 0)); //TODO get value
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+            
+            swervePaths_.push_back(p1);
+            break;
+        }
+        case TWO_MIDDLE:
+        {
+            SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p1.addPoint(SwervePose(0, 0, 135, 0));
+            p1.addPoint(SwervePose(0.7, -0.7, 135, 0)); //TODO get value
+            p1.addPoint(SwervePose(0, 0, 135, 0));
+            
+            swervePaths_.push_back(p1);
+            break;
+        }
+        case TWO_LEFT:
+        {
+            SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p1.addPoint(SwervePose(0, 0, -135, 0));
+            p1.addPoint(SwervePose(-0.7, -0.7, -135, 0)); //TODO get value
+            p1.addPoint(SwervePose(0, 0, -135, 0));
+            
+            swervePaths_.push_back(p1);
+            break;
+        }
+        case THREE:
+        {
+            SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+            p1.addPoint(SwervePose(1, 0, 90, 0)); //TODO get value
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+
+            SwervePath p2(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p2.addPoint(SwervePose(0, 0, 90, 0));
+            p2.addPoint(SwervePose(-2, -2, -135, 1.5));
+            
+            swervePaths_.push_back(p1);
+            swervePaths_.push_back(p2);
+            break;
+        }
+        case BIG_BOY:
+        {
+            SwervePath p1(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+            p1.addPoint(SwervePose(1, 0, 90, 0)); //TODO get value
+            p1.addPoint(SwervePose(0, 0, 90, 0));
+
+            SwervePath p2(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p2.addPoint(SwervePose(0, 0, 90, 0));
+            p2.addPoint(SwervePose(-2, -2, -135, 1.5));
+
+            SwervePath p3(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p3.addPoint(SwervePose(-2, -2, -135, 1.5));
+            p3.addPoint(SwervePose(1, -4, 135, 2));
+
+            SwervePath p4(SwerveConstants::MAX_LA, SwerveConstants::MAX_LV, SwerveConstants::MAX_AA, SwerveConstants::MAX_AV);
+
+            p4.addPoint(SwervePose(1, -4, 135, 2));
+            p4.addPoint(SwervePose(-2, -2, 135, 0));
+            
+            swervePaths_.push_back(p1);
+            swervePaths_.push_back(p2);
+            swervePaths_.push_back(p3);
+            swervePaths_.push_back(p4);
+            break;
+        }
+    }
 }
 
 
@@ -23,25 +121,55 @@ Intake::State AutoPaths::getIntakeState()
 
 void AutoPaths::startTimer()
 {
-    timer_.Start();
+    startTime_ = timer_.GetFPGATimestamp().value();
 }
 
-void AutoPaths::stopTimer()
+/*void AutoPaths::stopTimer()
 {
     timer_.Stop();
-}
+}*/
 
-void AutoPaths::periodic(SwerveDrive* swerveDrive)
+void AutoPaths::periodic(double yaw, SwerveDrive* swerveDrive)
 {
+    double time = timer_.GetFPGATimestamp().value() - startTime_;
+
+    bool pathsOver = false;
+    if(path_ != TAXI_DUMB && path_ != TWO_DUMB)
+    {
+        bool endOfSwervePath = false;
+        //SwervePose* pose;
+        for(size_t i = pathNum_; i < swervePaths_.size(); ++i) //Maybe make a while loop idk
+        {
+            //pose = &swervePaths_[i].getPose(time, endOfSwervePath);
+
+            if(i == swervePaths_.size() - 1 && endOfSwervePath)
+            {
+                pathsOver = true;
+            }
+
+            if(endOfSwervePath && i != swervePaths_.size() - 1)
+            {
+                pathNum_++;
+                startTimer();
+                break;
+            }
+        }
+
+        //swerveDrive->drivePose(yaw, *pose);
+
+        //delete pose;
+    }
+    
+
     switch(path_)
     {
         case TAXI_DUMB:
         {
             intakeState_ = Intake::RETRACTED_IDLE;
             shooterState_ = Shooter::IDLE;
-            if(timer_.Get().value() < 2.0) //TODO get value
+            if(timer_.Get().value() < 2.0) //TODO get values
             {
-                swerveDrive->drive(0, -0.2, 0);
+                swerveDrive->drive(0, 0.2, 0);
             }
             else
             {
@@ -51,11 +179,11 @@ void AutoPaths::periodic(SwerveDrive* swerveDrive)
         }
         case TWO_DUMB:
         {
-            if(timer_.Get().value() < 2.0) //TODO get value
+            if(timer_.Get().value() < 2.0) //TODO get values
             {
                 intakeState_ = Intake::INTAKING;
                 shooterState_ = Shooter::TRACKING;
-                swerveDrive->drive(0, -0.2, 0);
+                swerveDrive->drive(0, 0.2, 0);
             }
             else
             {
@@ -66,24 +194,52 @@ void AutoPaths::periodic(SwerveDrive* swerveDrive)
         }
         case TWO_RIGHT:
         {
+            intakeState_ = Intake::INTAKING;
+            if(pathsOver)
+            {
+                shooterState_ = Shooter::REVING;
+            }
+            else
+            {
+                shooterState_ = Shooter::TRACKING;
+            }
             break;
         }
         case TWO_MIDDLE:
         {
+            intakeState_ = Intake::INTAKING;
+            if(pathsOver)
+            {
+                shooterState_ = Shooter::REVING;
+            }
+            else
+            {
+                shooterState_ = Shooter::TRACKING;
+            }
             break;
         }
         case TWO_LEFT:
         {
+            intakeState_ = Intake::INTAKING;
+            if(pathsOver)
+            {
+                shooterState_ = Shooter::REVING;
+            }
+            else
+            {
+                shooterState_ = Shooter::TRACKING;
+            }
             break;
         }
         case THREE:
         {
             break;
         }
-        case FIVE:
+        case BIG_BOY:
         {
             break;
         }
+
     }
 }
 
@@ -121,7 +277,7 @@ double AutoPaths::initYaw()
             return  90;
             break;
         }
-        case FIVE:
+        case BIG_BOY:
         {
             return 90;
             break;

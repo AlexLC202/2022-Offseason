@@ -34,6 +34,10 @@ double Limelight::getAdjustedX()
 bool Limelight::hasTarget()
 {
     double targets = table->GetNumber("tv", -1);
+
+    //std::vector<double> thing = table->GetEntry("llpython").GetDoubleArray(std::vector<double>());
+    //cout << thing[0] << endl;
+
     if(targets == -1 || targets == 0)
     {
         return false;
@@ -96,9 +100,6 @@ double Limelight::calcDistance()
     double y = getYOff();
     adjustAngles(x, y);
     return (GeneralConstants::GOAL_HEIGHT - LimelightConstants::HEIGHT_OFFSET) / tan(y * M_PI / 180);
-
-    //double angle = (getYOff() + LimelightConstants::ANGLE_OFFSET) * (M_PI / 180);
-    //return (GeneralConstants::GOAL_HEIGHT - LimelightConstants::HEIGHT_OFFSET) / tan(angle);
 }
 
 void Limelight::lightOn(bool light)
